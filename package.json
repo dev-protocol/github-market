@@ -1,0 +1,49 @@
+{
+	"name": "template-repos-ts-sol",
+	"version": "1.0.0",
+	"description": "Template repository for using TypeScript and Solidity",
+	"main": "index.js",
+	"scripts": {
+		"test": "truffle test test/**/*.ts",
+		"pretest": "npm run generate",
+		"generate": "truffle compile && typechain --target truffle './build/**/*.json'",
+		"deploy": "truffle migrate --network",
+		"predeploy": "npm run build",
+		"lint": "npm run lint:eslint && npm run lint:solium && npm run lint:format",
+		"lint:eslint": "eslint . --ext .ts,.js --fix",
+		"lint:solium": "solium --dir . --fix",
+		"lint:format": "prettier --write '**/*.{sol,js,json,md,yml}'",
+		"build": "tsc -p tsconfig.build.json",
+		"prebuild": "npm run generate"
+	},
+	"author": "",
+	"license": "MPL-2.0",
+	"devDependencies": {
+		"@types/dotenv": "8.2.0",
+		"@typescript-eslint/eslint-plugin": "3.6.1",
+		"@typescript-eslint/parser": "3.6.1",
+		"dotenv": "8.2.0",
+		"eslint": "7.4.0",
+		"eslint-config-prettier": "6.11.0",
+		"eslint-config-xo": "0.32.0",
+		"eslint-config-xo-typescript": "0.31.0",
+		"eslint-plugin-prettier": "3.1.4",
+		"ethlint": "1.2.5",
+		"husky": "4.2.5",
+		"prettier": "2.0.5",
+		"prettier-plugin-solidity": "1.0.0-alpha.54",
+		"truffle": "5.1.34",
+		"truffle-hdwallet-provider": "1.0.17",
+		"truffle-typings": "1.0.8",
+		"ts-generator": "0.0.8",
+		"ts-node": "8.10.2",
+		"typechain": "2.0.0",
+		"typechain-target-truffle": "1.0.2",
+		"typescript": "3.9.6"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "npm run lint"
+		}
+	}
+}
