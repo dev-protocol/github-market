@@ -1,5 +1,5 @@
 {
-	"sourceDirectory": "./contracts",
-	"outputDirectory": "./build",
-	"nodeModulesDirectory": "./node_modules"
+  "sourceDirectory": "./contracts",
+  "outputDirectory": "./build",
+  "nodeModulesDirectory": "./node_modules"
 }
