@@ -1,8 +1,7 @@
 {
-  "name": "template-repos-ts-sol",
+  "name": "github-market",
   "version": "1.0.0",
   "description": "Template repository for using TypeScript and Solidity",
-  "main": "index.js",
   "scripts": {
     "test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000 --parallel",
     "pretest": "yarn generate",
