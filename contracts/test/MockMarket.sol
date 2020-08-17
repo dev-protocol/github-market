@@ -20,7 +20,10 @@ contract MockMarket is IMarket {
         latestMetrics = _metrics;
     }
 
-    function authenticatedCallback(address, bytes32) external override returns (address)
+    function authenticatedCallback(address, bytes32)
+        external
+        override
+        returns (address)
     {
         return latestMetrics;
     }
