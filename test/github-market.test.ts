@@ -15,12 +15,12 @@ describe("GitHubMarket", () => {
 
   beforeEach(async () => {
     marketBehavior = await deployContract(wallet, GitHubMarket);
-    market = await deployContract(wallet, MockMarket);
   });
 
   before(async () => {
     market = await deployContract(wallet, MockMarket);
     metrics = await deployContract(wallet, MockMetrics);
+    await market.setLatestMetrics(metrics.address);
   });
 
   describe("done", () => {
@@ -33,7 +33,6 @@ describe("GitHubMarket", () => {
   describe("migrate", () => {
     describe("success", () => {
       it("migrateしたデータが登録される", async () => {
-        await market.setLatestMetrics(metrics.address);
         await expect(
           marketBehavior.migrate(
             property1.address,
@@ -65,18 +64,39 @@ describe("GitHubMarket", () => {
             "test-package2",
             market.address
           )
-        ).to.be.reverted;
+        ).to.be.revertedWith("now is not migratable");
       });
     });
   });
 
   describe("authenticate", () => {
-    it("連携データが作成される", async () => {
-      const hash = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("test-package1")
-      );
-      await expect(
-        marketBehavior.authenticate(
+    describe("success", () => {
+      it("連携データが作成される", async () => {
+        const hash = getIdHash("test-package1");
+        await expect(
+          marketBehavior.authenticate(
+            property1.address,
+            "test-package1",
+            "dummy-signature",
+            "",
+            "",
+            "",
+            market.address
+          )
+        )
+          .to.emit(marketBehavior, "Query")
+          .withArgs([
+            hash,
+            "test-package1",
+            "dummy-signature",
+            market.address,
+            property1.address,
+          ]);
+      });
+    });
+    describe("fail", () => {
+      it("認証中に忍性", async () => {
+        await marketBehavior.authenticate(
           property1.address,
           "test-package1",
           "dummy-signature",
@@ -84,63 +104,104 @@ describe("GitHubMarket", () => {
           "",
           "",
           market.address
-        )
-      )
-        .to.emit(marketBehavior, "Query")
-        .withArgs([
-          hash,
-          "test-package1",
-          "dummy-signature",
-          market.address,
-          property1.address,
-        ]);
+        );
+        await expect(
+          marketBehavior.authenticate(
+            property1.address,
+            "test-package1",
+            "dummy-signature",
+            "",
+            "",
+            "",
+            market.address
+          )
+        ).to.be.revertedWith("while pending");
+      });
     });
   });
   describe("khaosCallback", () => {
-    //describe("success", () => {});
+    describe("success", () => {
+      it("認証ができる", async () => {
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.authenticate(
+          property1.address,
+          "test-package1",
+          "dummy-signature",
+          "",
+          "",
+          "",
+          market.address
+        );
+        const data = getKhaosCallbackData(
+          "test-package1",
+          "dummy-signature",
+          market.address,
+          property1.address
+        );
+        const hash = getIdHash("test-package1");
+        await expect(marketBehaviorKhaos.khaosCallback(data))
+          .to.emit(marketBehavior, "Authenticated")
+          .withArgs([
+            hash,
+            "test-package1",
+            "dummy-signature",
+            market.address,
+            property1.address,
+          ]);
+        expect(await marketBehavior.getId(metrics.address)).to.equal(
+          "test-package1"
+        );
+        expect(await marketBehavior.getMetrics("test-package1")).to.equal(
+          metrics.address
+        );
+      });
+    });
     describe("fail", () => {
       it("khaosのアドレスをセットしていないとエラー", async () => {
-        await expect(marketBehavior.khaosCallback("0x01")).to.be.reverted;
+        await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
+          "illegal access"
+        );
       });
       it("khaosのアドレスをセットしていてもkhaosが実行者じゃなければエラー", async () => {
-        //const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await marketBehavior.setKhaos(khaos.address);
-        await expect(marketBehavior.khaosCallback("0x01")).to.be.reverted;
+        await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
+          "illegal access"
+        );
+      });
+      it("pending中でなければエラー", async () => {
+        const data = getKhaosCallbackData(
+          "test-package1",
+          "dummy-signature",
+          market.address,
+          property1.address
+        );
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await expect(
+          marketBehaviorKhaos.khaosCallback(data)
+        ).to.be.revertedWith("not while pending");
       });
     });
   });
-  //   it('Assigns initial balance', async () => {
-  //     expect(await token.balanceOf(wallet.address)).to.equal(1000);
-  //   });
-
-  //   it('Transfer adds amount to destination account', async () => {
-  //     await token.transfer(walletTo.address, 7);
-  //     expect(await token.balanceOf(walletTo.address)).to.equal(7);
-  //   });
-
-  //   it('Transfer emits event', async () => {
-  //     await expect(token.transfer(walletTo.address, 7))
-  //       .to.emit(token, 'Transfer')
-  //       .withArgs(wallet.address, walletTo.address, 7);
-  //   });
-
-  //   it('Can not transfer above the amount', async () => {
-  //     await expect(token.transfer(walletTo.address, 1007)).to.be.reverted;
-  //   });
-
-  //   it('Can not transfer from empty account', async () => {
-  //     const tokenFromOtherWallet = token.connect(walletTo);
-  //     await expect(tokenFromOtherWallet.transfer(wallet.address, 1))
-  //       .to.be.reverted;
-  //   });
-
-  //   it('Calls totalSupply on BasicToken contract', async () => {
-  //     await token.totalSupply();
-  //     expect('totalSupply').to.be.calledOnContract(token);
-  //   });
-
-  //   it('Calls balanceOf with sender address on BasicToken contract', async () => {
-  //     await token.balanceOf(wallet.address);
-  //     expect('balanceOf').to.be.calledOnContractWith(token, [wallet.address]);
-  //   });
 });
+
+function getIdHash(_package: string): string {
+  const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(_package));
+  return hash;
+}
+
+function getKhaosCallbackData(
+  _package: string,
+  _signature: string,
+  _marketAddress: string,
+  _propertyAddress: string
+): string {
+  const hash = getIdHash(_package);
+  const abi = new ethers.utils.AbiCoder();
+  const data = abi.encode(
+    ["tuple(bytes32, string, string, address, address)"],
+    [[hash, _package, _signature, _marketAddress, _propertyAddress]]
+  );
+  return data;
+}

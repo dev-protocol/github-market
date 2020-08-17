@@ -87,6 +87,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         address _dest
     ) public override returns (bool) {
         bytes32 key = createKey(_githubPackage);
+        require(pendingAuthentication[key] == false, "while pending");
         QueryData memory d = QueryData(
             key,
             _githubPackage,
@@ -103,8 +104,8 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function khaosCallback(bytes memory _data) external {
         require(msg.sender == khaos, "illegal access");
         QueryData memory callback = abi.decode(_data, (QueryData));
+        require(pendingAuthentication[callback.key], "not while pending");
         emit Authenticated(callback);
-        require(pendingAuthentication[callback.key], "illegal data");
         delete pendingAuthentication[callback.key];
         register(
             callback.key,
