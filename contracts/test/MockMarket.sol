@@ -4,10 +4,11 @@ import {IMarket} from "contracts/GitHubMarket.sol";
 
 contract MockMarket is IMarket {
     address public latestMetrics;
+
     function authenticate(
-        address ,
-        string memory ,
-        string memory ,
+        address,
+        string memory,
+        string memory,
         string memory,
         string memory,
         string memory
@@ -19,13 +20,13 @@ contract MockMarket is IMarket {
         latestMetrics = _metrics;
     }
 
-    function authenticatedCallback(address , bytes32 ) external override returns (address) {
+    function authenticatedCallback(address, bytes32) external override returns (address)
+    {
         return latestMetrics;
     }
 
-    function deauthenticate(
-        address 
-    ) external override {}
+    // solium-disable-next-line no-empty-blocks
+    function deauthenticate(address) external override {}
 
     function schema() external override view returns (string memory) {
         return "";
@@ -43,7 +44,6 @@ contract MockMarket is IMarket {
         return 0;
     }
 
-    function toEnable() external override {
-
-    }
+    // solium-disable-next-line no-empty-blocks
+    function toEnable() external override {}
 }
