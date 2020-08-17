@@ -61,7 +61,6 @@ interface IMarket {
 
 contract GitHubMarket is IMarketBehavior, Ownable {
     address private khaos;
-    string public schema = "['GitHub package', 'GitHub token']";
     bool public migratable = true;
 
     mapping(address => string) private packages;
@@ -69,7 +68,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(bytes32 => bool) private pendingAuthentication;
     event Registered(address _metrics, string _package);
     event Authenticated(QueryData _data);
-    event Query(bytes _data);
+    event Query(QueryData _data);
     struct QueryData {
         bytes32 key;
         string package;
@@ -95,7 +94,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             _dest,
             _prop
         );
-        emit Query(abi.encode(d));
+        emit Query(d);
 
         pendingAuthentication[key] = true;
         return true;
@@ -168,6 +167,10 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
     function setKhaos(address _khaos) external onlyOwner {
         khaos = _khaos;
+    }
+
+    function schema() external override view returns (string memory) {
+        return "['GitHub package', 'GitHub token']";
     }
 }
 

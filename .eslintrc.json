@@ -24,6 +24,7 @@
     {
       "files": ["**/*.test.ts"],
       "rules": {
+        "functional/no-let": "off",
         "functional/no-expression-statement": "off",
         "functional/functional-parameters": "off",
         "@typescript-eslint/no-explicit-any": "off"

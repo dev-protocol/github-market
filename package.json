@@ -11,7 +11,7 @@
     "preexec": "yarn build",
     "deploy": "yarn exec scripts/deploy.js",
     "lint": "yarn lint:eslint && yarn lint:solium && yarn lint:format",
-    "lint:eslint": "eslint . --ext .ts,.js --fix",
+    "lint:eslint": "eslint . --ext .ts --fix",
     "lint:solium": "solium --dir contracts --fix",
     "lint:format": "prettier --write '**/*.{sol,js,json,md,yml}'",
     "build": "tsc -p tsconfig.build.json",
