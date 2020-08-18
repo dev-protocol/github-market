@@ -78,7 +78,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     /*
-    _githubPackage: ex) 
+    _githubPackage: ex)
                         personal repository: Akira-Taniguchi/cloud_lib
                         organization repository: Akira-Taniguchi/dev-protocol/protocol
     _publicSignature: signature string(created by Khaos)
