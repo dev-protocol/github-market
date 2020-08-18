@@ -65,10 +65,10 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     address private market;
     bool public migratable = true;
 
-    mapping(address => string) private packages;
+    mapping(address => string) private repositories;
     mapping(bytes32 => address) private metrics;
     mapping(bytes32 => bool) private pendingAuthentication;
-    event Registered(address _metrics, string _package);
+    event Registered(address _metrics, string _repository);
     event Authenticated(AuthenticatedData _data);
     event Query(QueryData _data);
     struct QueryData {
@@ -83,21 +83,21 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     /*
-    _githubPackage: ex)
+    _githubRepository: ex)
                         personal repository: Akira-Taniguchi/cloud_lib
                         organization repository: dev-protocol/protocol
     _publicSignature: signature string(created by Khaos)
     */
     function authenticate(
         address _prop,
-        string memory _githubPackage,
+        string memory _githubRepository,
         string memory _publicSignature,
         string memory,
         string memory,
         string memory,
         address _dest
     ) public override returns (bool) {
-        bytes32 key = createKey(_githubPackage);
+        bytes32 key = createKey(_githubRepository);
         require(pendingAuthentication[key] == false, "while pending");
         QueryData memory d = QueryData(
             key,
@@ -105,8 +105,8 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             strConcat(
                 '{"property":"',
                 convertAddresstoString(_prop),
-                '", "package":"',
-                _githubPackage,
+                '", "repository":"',
+                _githubRepository,
                 '"}'
             )
         );
@@ -178,12 +178,12 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         (
             uint256 status,
             address property,
-            string memory package,
+            string memory repository,
             string memory errorMessage
         ) = getAdditionalData(callback.additionalData, tokens, actualNum);
         require(status == 0, errorMessage);
 
-        register(callback.key, property, package);
+        register(callback.key, property, repository);
     }
 
     function parseJson(string memory json)
@@ -217,7 +217,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         JsmnSolLib.Token memory t;
         uint256 status;
         string memory errorMessage;
-        string memory package;
+        string memory repository;
         address property;
 
         for (uint256 ielement = 0; ielement < actualNum - 1; ielement++) {
@@ -229,15 +229,15 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             } else if (compareStrings(jsonElement, "errorMessage")) {
                 t = tokens[ielement + 1];
                 errorMessage = JsmnSolLib.getBytes(json, t.start, t.end);
-            } else if (compareStrings(jsonElement, "package")) {
+            } else if (compareStrings(jsonElement, "repository")) {
                 t = tokens[ielement + 1];
-                package = JsmnSolLib.getBytes(json, t.start, t.end);
+                repository = JsmnSolLib.getBytes(json, t.start, t.end);
             } else if (compareStrings(jsonElement, "property")) {
                 t = tokens[ielement + 1];
                 property = parseAddr(JsmnSolLib.getBytes(json, t.start, t.end));
             }
         }
-        return (status, property, package, errorMessage);
+        return (status, property, repository, errorMessage);
     }
 
     function parseInt(string memory _value)
@@ -301,19 +301,19 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function register(
         bytes32 _key,
         address _property,
-        string memory _package
+        string memory _repository
     ) private {
         address _metrics = IMarket(market).authenticatedCallback(
             _property,
             _key
         );
-        packages[_metrics] = _package;
+        repositories[_metrics] = _repository;
         metrics[_key] = _metrics;
-        emit Registered(_metrics, _package);
+        emit Registered(_metrics, _repository);
     }
 
-    function createKey(string memory _package) private pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_package));
+    function createKey(string memory _repository) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_repository));
     }
 
     function getId(address _metrics)
@@ -322,29 +322,29 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         view
         returns (string memory)
     {
-        return packages[_metrics];
+        return repositories[_metrics];
     }
 
-    function getMetrics(string memory _package)
+    function getMetrics(string memory _repository)
         public
         override
         view
         returns (address)
     {
-        return metrics[createKey(_package)];
+        return metrics[createKey(_repository)];
     }
 
     function migrate(
         address _property,
-        string memory _package,
+        string memory _repository,
         address _market
     ) public onlyOwner {
         if (market == address(0)) {
             market = _market;
         }
-        bytes32 key = createKey(_package);
+        bytes32 key = createKey(_repository);
         require(migratable, "now is not migratable");
-        register(key, _property, _package);
+        register(key, _property, _repository);
     }
 
     function done() public onlyOwner {
@@ -356,6 +356,6 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     function schema() external override view returns (string memory) {
-        return "['GitHub package', 'GitHub token']";
+        return "['GitHub repository', 'GitHub token']";
     }
 }

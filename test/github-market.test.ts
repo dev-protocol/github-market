@@ -61,7 +61,7 @@ describe("GitHubMarket", () => {
         await expect(
           marketBehavior.migrate(
             property2.address,
-            "test-package2",
+            "user/repository2",
             market.address
           )
         ).to.be.revertedWith("now is not migratable");
@@ -90,7 +90,7 @@ describe("GitHubMarket", () => {
             "dummy-signature",
             '{"property":"' +
               property1.address.toLowerCase() +
-              '", "package":"user/repository"}',
+              '", "repository":"user/repository"}',
           ]);
       });
     });
@@ -198,20 +198,20 @@ describe("GitHubMarket", () => {
   });
 });
 
-function getIdHash(_package: string): string {
-  const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(_package));
+function getIdHash(_repository: string): string {
+  const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(_repository));
   return hash;
 }
 
 function getKhaosCallbackData(
-  _package: string,
+  _repository: string,
   _propertyAddress: string,
   _status = 0,
   _errorMessage = ""
 ): readonly [string, string] {
-  const hash = getIdHash(_package);
+  const hash = getIdHash(_repository);
   const additionalData = {
-    package: _package,
+    repository: _repository,
     property: _propertyAddress,
     status: _status,
     errorMessage: _errorMessage,
