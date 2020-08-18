@@ -61,26 +61,34 @@ interface IMarket {
 
 contract GitHubMarket is IMarketBehavior, Ownable {
     address private khaos;
+    address private market;
     bool public migratable = true;
 
     mapping(address => string) private packages;
     mapping(bytes32 => address) private metrics;
     mapping(bytes32 => bool) private pendingAuthentication;
     event Registered(address _metrics, string _package);
-    event Authenticated(QueryData _data);
+    event Authenticated(AuthenticatedData _data);
     event Query(QueryData _data);
     struct QueryData {
         bytes32 key;
         string package;
         string publicSignature;
-        address callback;
         address property;
+    }
+
+    struct AuthenticatedData {
+        bytes32 key;
+        string package;
+        address property;
+        int status;
+        string errorMessage;
     }
 
     /*
     _githubPackage: ex)
                         personal repository: Akira-Taniguchi/cloud_lib
-                        organization repository: Akira-Taniguchi/dev-protocol/protocol
+                        organization repository: dev-protocol/protocol
     _publicSignature: signature string(created by Khaos)
     */
     function authenticate(
@@ -98,36 +106,39 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             key,
             _githubPackage,
             _publicSignature,
-            _dest,
             _prop
         );
         emit Query(d);
 
         pendingAuthentication[key] = true;
+
+        if (market == address(0)){
+            market = _dest;
+        }
         return true;
     }
 
     function khaosCallback(bytes memory _data) external {
         require(msg.sender == khaos, "illegal access");
-        QueryData memory callback = abi.decode(_data, (QueryData));
+        AuthenticatedData memory callback = abi.decode(_data, (AuthenticatedData));
         require(pendingAuthentication[callback.key], "not while pending");
         emit Authenticated(callback);
         delete pendingAuthentication[callback.key];
+        require(callback.status == 0, callback.errorMessage);
+
         register(
             callback.key,
             callback.property,
-            callback.package,
-            callback.callback
+            callback.package
         );
     }
 
     function register(
         bytes32 _key,
         address _property,
-        string memory _package,
-        address _market
+        string memory _package
     ) private {
-        address _metrics = IMarket(_market).authenticatedCallback(
+        address _metrics = IMarket(market).authenticatedCallback(
             _property,
             _key
         );
@@ -163,9 +174,12 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _package,
         address _market
     ) public onlyOwner {
+        if (market == address(0)){
+            market = _market;
+        }
         bytes32 key = createKey(_package);
         require(migratable, "now is not migratable");
-        register(key, _property, _package, _market);
+        register(key, _property, _package);
     }
 
     function done() public onlyOwner {

@@ -36,16 +36,16 @@ describe("GitHubMarket", () => {
         await expect(
           marketBehavior.migrate(
             property1.address,
-            "test-package1",
+            "user/repository",
             market.address
           )
         )
           .to.emit(marketBehavior, "Registered")
-          .withArgs(metrics.address, "test-package1");
+          .withArgs(metrics.address, "user/repository");
         expect(await marketBehavior.getId(metrics.address)).to.equal(
-          "test-package1"
+          "user/repository"
         );
-        expect(await marketBehavior.getMetrics("test-package1")).to.equal(
+        expect(await marketBehavior.getMetrics("user/repository")).to.equal(
           metrics.address
         );
       });
@@ -54,7 +54,7 @@ describe("GitHubMarket", () => {
       it("If you run the done function, you won't be able to migrate.", async () => {
         await marketBehavior.migrate(
           property1.address,
-          "test-package1",
+          "user/repository",
           market.address
         );
         await marketBehavior.done();
@@ -72,11 +72,11 @@ describe("GitHubMarket", () => {
   describe("authenticate", () => {
     describe("success", () => {
       it("Query event data is created.", async () => {
-        const hash = getIdHash("test-package1");
+        const hash = getIdHash("user/repository");
         await expect(
           marketBehavior.authenticate(
             property1.address,
-            "test-package1",
+            "user/repository",
             "dummy-signature",
             "",
             "",
@@ -87,9 +87,8 @@ describe("GitHubMarket", () => {
           .to.emit(marketBehavior, "Query")
           .withArgs([
             hash,
-            "test-package1",
+            "user/repository",
             "dummy-signature",
-            market.address,
             property1.address,
           ]);
       });
@@ -98,7 +97,7 @@ describe("GitHubMarket", () => {
       it("An error occurs when you re-authenticate during authentication.", async () => {
         await marketBehavior.authenticate(
           property1.address,
-          "test-package1",
+          "user/repository",
           "dummy-signature",
           "",
           "",
@@ -108,7 +107,7 @@ describe("GitHubMarket", () => {
         await expect(
           marketBehavior.authenticate(
             property1.address,
-            "test-package1",
+            "user/repository",
             "dummy-signature",
             "",
             "",
@@ -126,7 +125,7 @@ describe("GitHubMarket", () => {
         await marketBehavior.setKhaos(khaos.address);
         await marketBehavior.authenticate(
           property1.address,
-          "test-package1",
+          "user/repository",
           "dummy-signature",
           "",
           "",
@@ -134,25 +133,23 @@ describe("GitHubMarket", () => {
           market.address
         );
         const data = getKhaosCallbackData(
-          "test-package1",
-          "dummy-signature",
-          market.address,
+          "user/repository",
           property1.address
         );
-        const hash = getIdHash("test-package1");
+        const hash = getIdHash("user/repository");
         await expect(marketBehaviorKhaos.khaosCallback(data))
           .to.emit(marketBehavior, "Authenticated")
           .withArgs([
             hash,
-            "test-package1",
-            "dummy-signature",
-            market.address,
+            "user/repository",
             property1.address,
+            0,
+            ""
           ]);
         expect(await marketBehavior.getId(metrics.address)).to.equal(
-          "test-package1"
+          "user/repository"
         );
-        expect(await marketBehavior.getMetrics("test-package1")).to.equal(
+        expect(await marketBehavior.getMetrics("user/repository")).to.equal(
           metrics.address
         );
       });
@@ -171,9 +168,7 @@ describe("GitHubMarket", () => {
       });
       it("If the authentication is not in progress, an error occurs.", async () => {
         const data = getKhaosCallbackData(
-          "test-package1",
-          "dummy-signature",
-          market.address,
+          "user/repository",
           property1.address
         );
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
@@ -181,6 +176,27 @@ describe("GitHubMarket", () => {
         await expect(
           marketBehaviorKhaos.khaosCallback(data)
         ).to.be.revertedWith("not while pending");
+      });
+      it("An error occurs during authentication.", async () => {
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.authenticate(
+          property1.address,
+          "user/repository",
+          "dummy-signature",
+          "",
+          "",
+          "",
+          market.address
+        );
+        const data = getKhaosCallbackData(
+          "user/repository",
+          property1.address,
+          -1,
+          "test error messaage"
+        );
+        await expect(marketBehaviorKhaos.khaosCallback(data))
+          .to.be.revertedWith("test error messaage")
       });
     });
   });
@@ -193,15 +209,15 @@ function getIdHash(_package: string): string {
 
 function getKhaosCallbackData(
   _package: string,
-  _signature: string,
-  _marketAddress: string,
-  _propertyAddress: string
+  _propertyAddress: string,
+  _status = 0,
+  _errorMessage = ""
 ): string {
   const hash = getIdHash(_package);
   const abi = new ethers.utils.AbiCoder();
   const data = abi.encode(
-    ["tuple(bytes32, string, string, address, address)"],
-    [[hash, _package, _signature, _marketAddress, _propertyAddress]]
+    ["tuple(bytes32, string, address, int, string)"],
+    [[hash, _package, _propertyAddress, _status, _errorMessage]]
   );
   return data;
 }
