@@ -207,14 +207,14 @@ function getKhaosCallbackData(
   _repository: string,
   _propertyAddress: string,
   _status = 0,
-  _errorMessage = ""
+  _message = ""
 ): readonly [string, string] {
   const hash = getIdHash(_repository);
   const additionalData = {
     repository: _repository,
     property: _propertyAddress,
     status: _status,
-    errorMessage: _errorMessage,
+    message: _message,
   };
   const abi = new ethers.utils.AbiCoder();
   const data = abi.encode(

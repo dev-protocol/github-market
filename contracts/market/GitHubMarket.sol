@@ -179,9 +179,9 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             uint256 status,
             address property,
             string memory repository,
-            string memory errorMessage
+            string memory message
         ) = getAdditionalData(callback.additionalData, tokens, actualNum);
-        require(status == 0, errorMessage);
+        require(status == 0, message);
 
         register(callback.key, property, repository);
     }
@@ -226,7 +226,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             if (compareStrings(jsonElement, "status")) {
                 t = tokens[ielement + 1];
                 status = parseInt(JsmnSolLib.getBytes(json, t.start, t.end));
-            } else if (compareStrings(jsonElement, "errorMessage")) {
+            } else if (compareStrings(jsonElement, "message")) {
                 t = tokens[ielement + 1];
                 errorMessage = JsmnSolLib.getBytes(json, t.start, t.end);
             } else if (compareStrings(jsonElement, "repository")) {
