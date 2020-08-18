@@ -312,7 +312,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         emit Registered(_metrics, _repository);
     }
 
-    function createKey(string memory _repository) private pure returns (bytes32) {
+    function createKey(string memory _repository)
+        private
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked(_repository));
     }
 
