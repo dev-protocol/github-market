@@ -87,9 +87,10 @@ describe("GitHubMarket", () => {
           .to.emit(marketBehavior, "Query")
           .withArgs([
             hash,
-            "user/repository",
             "dummy-signature",
-            property1.address,
+            '{"property":"' +
+              property1.address.toLowerCase() +
+              '", "package":"user/repository"}',
           ]);
       });
     });
@@ -132,11 +133,14 @@ describe("GitHubMarket", () => {
           "",
           market.address
         );
-        const data = getKhaosCallbackData("user/repository", property1.address);
+        const [data, additionalDataString] = getKhaosCallbackData(
+          "user/repository",
+          property1.address
+        );
         const hash = getIdHash("user/repository");
         await expect(marketBehaviorKhaos.khaosCallback(data))
           .to.emit(marketBehavior, "Authenticated")
-          .withArgs([hash, "user/repository", property1.address, 0, ""]);
+          .withArgs([hash, additionalDataString]);
         expect(await marketBehavior.getId(metrics.address)).to.equal(
           "user/repository"
         );
@@ -158,7 +162,10 @@ describe("GitHubMarket", () => {
         );
       });
       it("If the authentication is not in progress, an error occurs.", async () => {
-        const data = getKhaosCallbackData("user/repository", property1.address);
+        const [data] = getKhaosCallbackData(
+          "user/repository",
+          property1.address
+        );
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await marketBehavior.setKhaos(khaos.address);
         await expect(
@@ -177,10 +184,10 @@ describe("GitHubMarket", () => {
           "",
           market.address
         );
-        const data = getKhaosCallbackData(
+        const [data] = getKhaosCallbackData(
           "user/repository",
           property1.address,
-          -1,
+          1,
           "test error messaage"
         );
         await expect(
@@ -201,12 +208,18 @@ function getKhaosCallbackData(
   _propertyAddress: string,
   _status = 0,
   _errorMessage = ""
-): string {
+): readonly [string, string] {
   const hash = getIdHash(_package);
+  const additionalData = {
+    package: _package,
+    property: _propertyAddress,
+    status: _status,
+    errorMessage: _errorMessage,
+  };
   const abi = new ethers.utils.AbiCoder();
   const data = abi.encode(
-    ["tuple(bytes32, string, address, int256, string)"],
-    [[hash, _package, _propertyAddress, _status, _errorMessage]]
+    ["tuple(bytes32, string)"],
+    [[hash, JSON.stringify(additionalData)]]
   );
-  return data;
+  return [data, JSON.stringify(additionalData)];
 }
