@@ -102,7 +102,13 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         QueryData memory d = QueryData(
             key,
             _publicSignature,
-            strConcat("{\"property\":\"", convertAddresstoString(_prop), "\", \"package\":\"", _githubPackage, "\"}")
+            strConcat(
+                '{"property":"',
+                convertAddresstoString(_prop),
+                '", "package":"',
+                _githubPackage,
+                '"}'
+            )
         );
         emit Query(d);
 
@@ -120,33 +126,39 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _c,
         string memory _d,
         string memory _e
-    ) private pure returns (string memory){
+    ) private pure returns (string memory) {
         bytes memory _ba = bytes(_a);
         bytes memory _bb = bytes(_b);
         bytes memory _bc = bytes(_c);
         bytes memory _bd = bytes(_d);
         bytes memory _be = bytes(_e);
-        string memory abcde = new string(_ba.length + _bb.length + _bc.length + _bd.length + _be.length);
+        string memory abcde = new string(
+            _ba.length + _bb.length + _bc.length + _bd.length + _be.length
+        );
         bytes memory babcde = bytes(abcde);
-        uint k = 0;
-        for (uint i = 0; i < _ba.length; i++) babcde[k++] = _ba[i];
-        for (uint i = 0; i < _bb.length; i++) babcde[k++] = _bb[i];
-        for (uint i = 0; i < _bc.length; i++) babcde[k++] = _bc[i];
-        for (uint i = 0; i < _bd.length; i++) babcde[k++] = _bd[i];
-        for (uint i = 0; i < _be.length; i++) babcde[k++] = _be[i];
+        uint256 k = 0;
+        for (uint256 i = 0; i < _ba.length; i++) babcde[k++] = _ba[i];
+        for (uint256 i = 0; i < _bb.length; i++) babcde[k++] = _bb[i];
+        for (uint256 i = 0; i < _bc.length; i++) babcde[k++] = _bc[i];
+        for (uint256 i = 0; i < _bd.length; i++) babcde[k++] = _bd[i];
+        for (uint256 i = 0; i < _be.length; i++) babcde[k++] = _be[i];
         return string(babcde);
     }
 
-    function convertAddresstoString(address account) private pure returns(string memory) {
+    function convertAddresstoString(address account)
+        private
+        pure
+        returns (string memory)
+    {
         bytes memory data = abi.encodePacked(account);
         bytes memory alphabet = "0123456789abcdef";
 
         bytes memory str = new bytes(2 + data.length * 2);
         str[0] = "0";
         str[1] = "x";
-        for (uint i = 0; i < data.length; i++) {
-            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
-            str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
+        for (uint256 i = 0; i < data.length; i++) {
+            str[2 + i * 2] = alphabet[uint256(uint8(data[i] >> 4))];
+            str[3 + i * 2] = alphabet[uint256(uint8(data[i] & 0x0f))];
         }
         return string(str);
     }
@@ -160,9 +172,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         require(pendingAuthentication[callback.key], "not while pending");
         emit Authenticated(callback);
         delete pendingAuthentication[callback.key];
-        (JsmnSolLib.Token[] memory tokens, uint actualNum) = parseJson(callback.additionalData);
+        (JsmnSolLib.Token[] memory tokens, uint256 actualNum) = parseJson(
+            callback.additionalData
+        );
         (
-            uint status,
+            uint256 status,
             address property,
             string memory package,
             string memory errorMessage
@@ -172,11 +186,14 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         register(callback.key, property, package);
     }
 
-    function parseJson(string memory json) private pure returns (JsmnSolLib.Token[] memory, uint) {
-        uint returnValue;
-        uint actualNum;
+    function parseJson(string memory json)
+        private
+        pure
+        returns (JsmnSolLib.Token[] memory, uint256)
+    {
+        uint256 returnValue;
+        uint256 actualNum;
         JsmnSolLib.Token[] memory tokens;
-
         (returnValue, tokens, actualNum) = JsmnSolLib.parse(json, 10);
         require(returnValue == JsmnSolLib.RETURN_SUCCESS, "parce error");
         return (tokens, actualNum);
@@ -185,29 +202,38 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function getAdditionalData(
         string memory json,
         JsmnSolLib.Token[] memory tokens,
-        uint actualNum
-    ) private pure returns (uint, address, string memory, string memory) {
+        uint256 actualNum
+    )
+        private
+        pure
+        returns (
+            uint256,
+            address,
+            string memory,
+            string memory
+        )
+    {
         string memory jsonElement;
         JsmnSolLib.Token memory t;
-        uint status;
+        uint256 status;
         string memory errorMessage;
         string memory package;
         address property;
 
-        for(uint ielement=0; ielement < actualNum-1; ielement++) {
+        for (uint256 ielement = 0; ielement < actualNum - 1; ielement++) {
             t = tokens[ielement];
             jsonElement = JsmnSolLib.getBytes(json, t.start, t.end);
-            if(compareStrings(jsonElement, "status")) {
-                t = tokens[ielement+1];
+            if (compareStrings(jsonElement, "status")) {
+                t = tokens[ielement + 1];
                 status = parseInt(JsmnSolLib.getBytes(json, t.start, t.end));
-            } else if(compareStrings(jsonElement, "errorMessage")) {
-                t = tokens[ielement+1];
+            } else if (compareStrings(jsonElement, "errorMessage")) {
+                t = tokens[ielement + 1];
                 errorMessage = JsmnSolLib.getBytes(json, t.start, t.end);
-            } else if(compareStrings(jsonElement, "package")) {
-                t = tokens[ielement+1];
+            } else if (compareStrings(jsonElement, "package")) {
+                t = tokens[ielement + 1];
                 package = JsmnSolLib.getBytes(json, t.start, t.end);
-            } else if(compareStrings(jsonElement, "property")) {
-                t = tokens[ielement+1];
+            } else if (compareStrings(jsonElement, "property")) {
+                t = tokens[ielement + 1];
                 property = parseAddr(JsmnSolLib.getBytes(json, t.start, t.end));
             }
         }
@@ -217,22 +243,31 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function parseInt(string memory _value)
         private
         pure
-        returns (uint _ret) {
+        returns (uint256 _ret)
+    {
         bytes memory _bytesValue = bytes(_value);
-        uint j = 1;
-        for(uint i = _bytesValue.length-1; i >= 0 && i < _bytesValue.length; i--) {
+        uint256 j = 1;
+        for (
+            uint256 i = _bytesValue.length - 1;
+            i >= 0 && i < _bytesValue.length;
+            i--
+        ) {
             assert(uint8(_bytesValue[i]) >= 48 && uint8(_bytesValue[i]) <= 57);
-            _ret += (uint8(_bytesValue[i]) - 48)*j;
-            j*=10;
+            _ret += (uint8(_bytesValue[i]) - 48) * j;
+            j *= 10;
         }
     }
 
-    function parseAddr(string memory _a) internal pure returns (address _parsedAddress) {
+    function parseAddr(string memory _a)
+        internal
+        pure
+        returns (address _parsedAddress)
+    {
         bytes memory tmp = bytes(_a);
         uint160 iaddr = 0;
         uint160 b1;
         uint160 b2;
-        for (uint i = 2; i < 2 + 2 * 20; i += 2) {
+        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
             iaddr *= 256;
             b1 = uint160(uint8(tmp[i]));
             b2 = uint160(uint8(tmp[i + 1]));
@@ -255,7 +290,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         return address(iaddr);
     }
 
-    function compareStrings (string memory a, string memory b) private pure returns (bool){
+    function compareStrings(string memory a, string memory b)
+        private
+        pure
+        returns (bool)
+    {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
