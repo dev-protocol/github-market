@@ -24,7 +24,7 @@ describe("GitHubMarket", () => {
   });
 
   describe("done", () => {
-    it("migratableが変わる", async () => {
+    it("Executing the done function, changes the migratable status.", async () => {
       expect(await marketBehavior.migratable()).to.equal(true);
       await marketBehavior.done();
       expect(await marketBehavior.migratable()).to.equal(false);
@@ -32,7 +32,7 @@ describe("GitHubMarket", () => {
   });
   describe("migrate", () => {
     describe("success", () => {
-      it("migrateしたデータが登録される", async () => {
+      it("The migrated data will be registered.", async () => {
         await expect(
           marketBehavior.migrate(
             property1.address,
@@ -51,7 +51,7 @@ describe("GitHubMarket", () => {
       });
     });
     describe("fail", () => {
-      it("doneするとmigrateができなくなる", async () => {
+      it("If you run the done function, you won't be able to migrate.", async () => {
         await marketBehavior.migrate(
           property1.address,
           "test-package1",
@@ -71,7 +71,7 @@ describe("GitHubMarket", () => {
 
   describe("authenticate", () => {
     describe("success", () => {
-      it("連携データが作成される", async () => {
+      it("Query event data is created.", async () => {
         const hash = getIdHash("test-package1");
         await expect(
           marketBehavior.authenticate(
@@ -95,7 +95,7 @@ describe("GitHubMarket", () => {
       });
     });
     describe("fail", () => {
-      it("認証中に忍性", async () => {
+      it("An error occurs when you re-authenticate during authentication.", async () => {
         await marketBehavior.authenticate(
           property1.address,
           "test-package1",
@@ -121,7 +121,7 @@ describe("GitHubMarket", () => {
   });
   describe("khaosCallback", () => {
     describe("success", () => {
-      it("認証ができる", async () => {
+      it("The authentication is completed when the callback function is executed from khaos.", async () => {
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await marketBehavior.setKhaos(khaos.address);
         await marketBehavior.authenticate(
@@ -158,18 +158,18 @@ describe("GitHubMarket", () => {
       });
     });
     describe("fail", () => {
-      it("khaosのアドレスをセットしていないとエラー", async () => {
+      it("If you don't set the khaos address, you'll get an error", async () => {
         await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
           "illegal access"
         );
       });
-      it("khaosのアドレスをセットしていてもkhaosが実行者じゃなければエラー", async () => {
+      it("If khaos is not the executor, an error will occur.ー", async () => {
         await marketBehavior.setKhaos(khaos.address);
         await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
           "illegal access"
         );
       });
-      it("pending中でなければエラー", async () => {
+      it("If the authentication is not in progress, an error occurs.", async () => {
         const data = getKhaosCallbackData(
           "test-package1",
           "dummy-signature",
