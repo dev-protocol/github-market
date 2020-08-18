@@ -132,20 +132,11 @@ describe("GitHubMarket", () => {
           "",
           market.address
         );
-        const data = getKhaosCallbackData(
-          "user/repository",
-          property1.address
-        );
+        const data = getKhaosCallbackData("user/repository", property1.address);
         const hash = getIdHash("user/repository");
         await expect(marketBehaviorKhaos.khaosCallback(data))
           .to.emit(marketBehavior, "Authenticated")
-          .withArgs([
-            hash,
-            "user/repository",
-            property1.address,
-            0,
-            ""
-          ]);
+          .withArgs([hash, "user/repository", property1.address, 0, ""]);
         expect(await marketBehavior.getId(metrics.address)).to.equal(
           "user/repository"
         );
@@ -167,10 +158,7 @@ describe("GitHubMarket", () => {
         );
       });
       it("If the authentication is not in progress, an error occurs.", async () => {
-        const data = getKhaosCallbackData(
-          "user/repository",
-          property1.address
-        );
+        const data = getKhaosCallbackData("user/repository", property1.address);
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await marketBehavior.setKhaos(khaos.address);
         await expect(
@@ -195,8 +183,9 @@ describe("GitHubMarket", () => {
           -1,
           "test error messaage"
         );
-        await expect(marketBehaviorKhaos.khaosCallback(data))
-          .to.be.revertedWith("test error messaage")
+        await expect(
+          marketBehaviorKhaos.khaosCallback(data)
+        ).to.be.revertedWith("test error messaage");
       });
     });
   });
@@ -216,7 +205,7 @@ function getKhaosCallbackData(
   const hash = getIdHash(_package);
   const abi = new ethers.utils.AbiCoder();
   const data = abi.encode(
-    ["tuple(bytes32, string, address, int, string)"],
+    ["tuple(bytes32, string, address, int256, string)"],
     [[hash, _package, _propertyAddress, _status, _errorMessage]]
   );
   return data;

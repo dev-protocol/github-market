@@ -81,7 +81,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         bytes32 key;
         string package;
         address property;
-        int status;
+        int256 status;
         string errorMessage;
     }
 
@@ -112,7 +112,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
         pendingAuthentication[key] = true;
 
-        if (market == address(0)){
+        if (market == address(0)) {
             market = _dest;
         }
         return true;
@@ -120,17 +120,16 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
     function khaosCallback(bytes memory _data) external {
         require(msg.sender == khaos, "illegal access");
-        AuthenticatedData memory callback = abi.decode(_data, (AuthenticatedData));
+        AuthenticatedData memory callback = abi.decode(
+            _data,
+            (AuthenticatedData)
+        );
         require(pendingAuthentication[callback.key], "not while pending");
         emit Authenticated(callback);
         delete pendingAuthentication[callback.key];
         require(callback.status == 0, callback.errorMessage);
 
-        register(
-            callback.key,
-            callback.property,
-            callback.package
-        );
+        register(callback.key, callback.property, callback.package);
     }
 
     function register(
@@ -174,7 +173,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _package,
         address _market
     ) public onlyOwner {
-        if (market == address(0)){
+        if (market == address(0)) {
             market = _market;
         }
         bytes32 key = createKey(_package);
