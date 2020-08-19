@@ -70,7 +70,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(bytes32 => bool) private pendingAuthentication;
     event Registered(address _metrics, string _repository);
     event Authenticated(AuthenticatedData _data);
-    event Query(QueryData _data);
+    event Query(bytes _data);
     struct QueryData {
         bytes32 key;
         string publicSignature;
@@ -110,7 +110,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
                 '"}'
             )
         );
-        emit Query(d);
+        emit Query(abi.encode(d));
 
         pendingAuthentication[key] = true;
 

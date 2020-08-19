@@ -72,7 +72,16 @@ describe("GitHubMarket", () => {
   describe("authenticate", () => {
     describe("success", () => {
       it("Query event data is created.", async () => {
-        const hash = getIdHash("user/repository");
+				const hash = getIdHash("user/repository");
+				const abi = new ethers.utils.AbiCoder();
+				const data = abi.encode(
+					["tuple(bytes32, string, string)"],
+					[[hash, "dummy-signature", '{"property":"' +
+					property1.address.toLowerCase() +
+					'", "repository":"user/repository"}']]
+				);
+
+
         await expect(
           marketBehavior.authenticate(
             property1.address,
@@ -85,13 +94,7 @@ describe("GitHubMarket", () => {
           )
         )
           .to.emit(marketBehavior, "Query")
-          .withArgs([
-            hash,
-            "dummy-signature",
-            '{"property":"' +
-              property1.address.toLowerCase() +
-              '", "repository":"user/repository"}',
-          ]);
+          .withArgs(data);
       });
     });
     describe("fail", () => {
