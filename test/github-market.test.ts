@@ -72,15 +72,20 @@ describe("GitHubMarket", () => {
   describe("authenticate", () => {
     describe("success", () => {
       it("Query event data is created.", async () => {
-				const hash = getIdHash("user/repository");
-				const abi = new ethers.utils.AbiCoder();
-				const data = abi.encode(
-					["tuple(bytes32, string, string)"],
-					[[hash, "dummy-signature", '{"property":"' +
-					property1.address.toLowerCase() +
-					'", "repository":"user/repository"}']]
-				);
-
+        const hash = getIdHash("user/repository");
+        const abi = new ethers.utils.AbiCoder();
+        const data = abi.encode(
+          ["tuple(bytes32, string, string)"],
+          [
+            [
+              hash,
+              "dummy-signature",
+              '{"property":"' +
+                property1.address.toLowerCase() +
+                '", "repository":"user/repository"}',
+            ],
+          ]
+        );
 
         await expect(
           marketBehavior.authenticate(
@@ -193,9 +198,13 @@ describe("GitHubMarket", () => {
           1,
           "test error messaage"
         );
-        await expect(
-          marketBehaviorKhaos.khaosCallback(data)
-        ).to.be.revertedWith("test error messaage");
+        const idHash = getIdHash("user/repository");
+        await expect(marketBehaviorKhaos.khaosCallback(data))
+          .to.emit(marketBehavior, "Authenticated")
+          .withArgs([
+            idHash,
+            '{"repository":"user/repository","property":"0x63FC2aD3d021a4D7e64323529a55a9442C444dA0","status":1,"message":"test error messaage"}',
+          ]);
       });
     });
   });
