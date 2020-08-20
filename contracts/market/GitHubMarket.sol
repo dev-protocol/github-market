@@ -103,11 +103,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             key,
             _publicSignature,
             strConcat(
-                "{\"property\":\"",
+                '{"property":"',
                 convertAddresstoString(_prop),
-                "\", \"repository\":\"",
+                '", "repository":"',
                 _githubRepository,
-                "\"}"
+                '"}'
             )
         );
         emit Query(abi.encode(d));
@@ -182,7 +182,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
             // solium-disable-next-line no-unused-vars
             string memory _
         ) = getAdditionalData(callback.additionalData, tokens, actualNum);
-        if(status != 0) {
+        if (status != 0) {
             return;
         }
 
