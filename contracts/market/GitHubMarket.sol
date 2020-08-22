@@ -65,7 +65,6 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     address private khaos;
     bool public migratable = true;
     bool public priorApproved = true;
-    string constant khaosId = "github-market";
 
     mapping(address => string) private repositories;
     mapping(bytes32 => address) private metrics;
@@ -77,12 +76,6 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
     event Query(string publicSignature);
-
-    struct AuthenticatedData {
-        string package;
-        uint256 status;
-        string message;
-    }
 
     /*
     _githubRepository: ex)
@@ -99,11 +92,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         address _dest,
         address
-    ) public override returns (bool) {
+    ) external override returns (bool) {
         if (priorApproved) {
             require(
                 publicSignatures[_publicSignature],
-                "It has not been approved."
+                "it has not been approved"
             );
         }
         bytes32 key = createKey(_githubRepository);
@@ -118,13 +111,13 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function khaosCallback(
         string memory _githubRepository,
         uint256 _status,
-        string memory message
+        string memory _message
     ) external {
         require(msg.sender == khaos, "illegal access");
-        require(_status == 0, message);
+        require(_status == 0, _message);
         bytes32 key = createKey(_githubRepository);
         require(pendingAuthentication[key], "not while pending");
-        emit Authenticated(_githubRepository, _status, message);
+        emit Authenticated(_githubRepository, _status, _message);
         authenticationed[key] = true;
         register(key, _githubRepository, markets[key], properties[key]);
     }
@@ -153,7 +146,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     function getId(address _metrics)
-        public
+        external
         override
         view
         returns (string memory)
@@ -162,7 +155,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     function getMetrics(string memory _repository)
-        public
+        external
         override
         view
         returns (address)
@@ -174,22 +167,22 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _repository,
         address _market,
         address _property
-    ) public onlyOwner {
+    ) external onlyOwner {
         require(migratable, "now is not migratable");
         bytes32 key = createKey(_repository);
         register(key, _repository, _market, _property);
     }
 
-    function done() public onlyOwner {
+    function done() external onlyOwner {
         migratable = false;
     }
 
-    function setpriorApprovedMode(bool _value) public onlyOwner {
+    function setPriorApprovedMode(bool _value) external onlyOwner {
         priorApproved = _value;
     }
 
     function addPublicSignaturee(string memory _publicSignature)
-        public
+        external
         onlyOwner
     {
         publicSignatures[_publicSignature] = true;

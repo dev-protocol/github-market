@@ -35,9 +35,9 @@ describe("GitHubMarket", () => {
       it("The migrated data will be registered.", async () => {
         await expect(
           marketBehavior.migrate(
-            property1.address,
             "user/repository",
-            market.address
+            market.address,
+            property1.address
           )
         )
           .to.emit(marketBehavior, "Registered")
@@ -53,16 +53,16 @@ describe("GitHubMarket", () => {
     describe("fail", () => {
       it("If you run the done function, you won't be able to migrate.", async () => {
         await marketBehavior.migrate(
-          property1.address,
           "user/repository",
-          market.address
+          market.address,
+          property1.address
         );
         await marketBehavior.done();
         await expect(
           marketBehavior.migrate(
-            property2.address,
             "user/repository2",
-            market.address
+            market.address,
+            property2.address
           )
         ).to.be.revertedWith("now is not migratable");
       });
@@ -71,22 +71,49 @@ describe("GitHubMarket", () => {
 
   describe("authenticate", () => {
     describe("success", () => {
-      it("Query event data is created.", async () => {
-        const hash = getIdHash("user/repository");
-        const abi = new ethers.utils.AbiCoder();
-        const data = abi.encode(
-          ["tuple(bytes32, string, string)"],
-          [
-            [
-              hash,
+      describe("prior approved mode", () => {
+        it("Query event data is created.", async () => {
+          await marketBehavior.setPriorApprovedMode(true);
+          await marketBehavior.addPublicSignaturee("dummy-signature");
+          await expect(
+            marketBehavior.authenticate(
+              property1.address,
+              "user/repository",
               "dummy-signature",
-              '{"property":"' +
-                property1.address.toLowerCase() +
-                '", "repository":"user/repository"}',
-            ],
-          ]
-        );
-
+              "",
+              "",
+              "",
+              market.address,
+              ethers.constants.AddressZero
+            )
+          )
+            .to.emit(marketBehavior, "Query")
+            .withArgs("dummy-signature");
+        });
+      });
+      describe("not prior approved mode", () => {
+        it("Query event data is created.", async () => {
+          await marketBehavior.setPriorApprovedMode(false);
+          await expect(
+            marketBehavior.authenticate(
+              property1.address,
+              "user/repository",
+              "dummy-signature",
+              "",
+              "",
+              "",
+              market.address,
+              ethers.constants.AddressZero
+            )
+          )
+            .to.emit(marketBehavior, "Query")
+            .withArgs("dummy-signature");
+        });
+      });
+    });
+    describe("fail", () => {
+      it("Not prior approved when in prior approval mode.", async () => {
+        await marketBehavior.setPriorApprovedMode(true);
         await expect(
           marketBehavior.authenticate(
             property1.address,
@@ -95,15 +122,14 @@ describe("GitHubMarket", () => {
             "",
             "",
             "",
-            market.address
+            market.address,
+            ethers.constants.AddressZero
           )
-        )
-          .to.emit(marketBehavior, "Query")
-          .withArgs(data);
+        ).to.be.revertedWith("it has not been approved");
       });
-    });
-    describe("fail", () => {
-      it("An error occurs when you re-authenticate during authentication.", async () => {
+      it("Already approved.", async () => {
+        await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,
           "user/repository",
@@ -111,7 +137,15 @@ describe("GitHubMarket", () => {
           "",
           "",
           "",
-          market.address
+          market.address,
+          ethers.constants.AddressZero
+        );
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await marketBehaviorKhaos.khaosCallback(
+          "user/repository",
+          0,
+          "success"
         );
         await expect(
           marketBehavior.authenticate(
@@ -121,17 +155,18 @@ describe("GitHubMarket", () => {
             "",
             "",
             "",
-            market.address
+            market.address,
+            ethers.constants.AddressZero
           )
-        ).to.be.revertedWith("while pending");
+        ).to.be.revertedWith("already authinticated");
       });
     });
   });
   describe("khaosCallback", () => {
     describe("success", () => {
       it("The authentication is completed when the callback function is executed from khaos.", async () => {
-        const marketBehaviorKhaos = marketBehavior.connect(khaos);
-        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,
           "user/repository",
@@ -139,16 +174,16 @@ describe("GitHubMarket", () => {
           "",
           "",
           "",
-          market.address
+          market.address,
+          ethers.constants.AddressZero
         );
-        const [data, additionalDataString] = getKhaosCallbackData(
-          "user/repository",
-          property1.address
-        );
-        const hash = getIdHash("user/repository");
-        await expect(marketBehaviorKhaos.khaosCallback(data))
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await expect(
+          marketBehaviorKhaos.khaosCallback("user/repository", 0, "success")
+        )
           .to.emit(marketBehavior, "Authenticated")
-          .withArgs([hash, additionalDataString]);
+          .withArgs("user/repository", 0, "success");
         expect(await marketBehavior.getId(metrics.address)).to.equal(
           "user/repository"
         );
@@ -159,30 +194,20 @@ describe("GitHubMarket", () => {
     });
     describe("fail", () => {
       it("If you don't set the khaos address, you'll get an error", async () => {
-        await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
-          "illegal access"
-        );
-      });
-      it("If khaos is not the executor, an error will occur.ー", async () => {
-        await marketBehavior.setKhaos(khaos.address);
-        await expect(marketBehavior.khaosCallback("0x01")).to.be.revertedWith(
-          "illegal access"
-        );
+        await expect(
+          marketBehavior.khaosCallback("user/repository", 0, "success")
+        ).to.be.revertedWith("illegal access");
       });
       it("If the authentication is not in progress, an error occurs.", async () => {
-        const [data] = getKhaosCallbackData(
-          "user/repository",
-          property1.address
-        );
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await marketBehavior.setKhaos(khaos.address);
         await expect(
-          marketBehaviorKhaos.khaosCallback(data)
+          marketBehaviorKhaos.khaosCallback("user/repository", 0, "success")
         ).to.be.revertedWith("not while pending");
       });
       it("An error occurs during authentication.", async () => {
-        const marketBehaviorKhaos = marketBehavior.connect(khaos);
-        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,
           "user/repository",
@@ -190,48 +215,19 @@ describe("GitHubMarket", () => {
           "",
           "",
           "",
-          market.address
+          market.address,
+          ethers.constants.AddressZero
         );
-        const [data] = getKhaosCallbackData(
-          "user/repository",
-          property1.address,
-          1,
-          "test error messaage"
-        );
-        const idHash = getIdHash("user/repository");
-        await expect(marketBehaviorKhaos.khaosCallback(data))
-          .to.emit(marketBehavior, "Authenticated")
-          .withArgs([
-            idHash,
-            '{"repository":"user/repository","property":"0x63FC2aD3d021a4D7e64323529a55a9442C444dA0","status":1,"message":"test error messaage"}',
-          ]);
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await expect(
+          marketBehaviorKhaos.khaosCallback(
+            "user/repository",
+            1,
+            "test error messaage"
+          )
+        ).to.be.revertedWith("test error messaage");
       });
     });
   });
 });
-
-function getIdHash(_repository: string): string {
-  const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(_repository));
-  return hash;
-}
-
-function getKhaosCallbackData(
-  _repository: string,
-  _propertyAddress: string,
-  _status = 0,
-  _message = ""
-): readonly [string, string] {
-  const hash = getIdHash(_repository);
-  const additionalData = {
-    repository: _repository,
-    property: _propertyAddress,
-    status: _status,
-    message: _message,
-  };
-  const abi = new ethers.utils.AbiCoder();
-  const data = abi.encode(
-    ["tuple(bytes32, string)"],
-    [[hash, JSON.stringify(additionalData)]]
-  );
-  return [data, JSON.stringify(additionalData)];
-}
