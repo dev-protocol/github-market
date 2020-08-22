@@ -64,6 +64,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     using ECDSA for bytes32;
     address private khaos;
     bool public migratable = true;
+    bool public priorApproved = true;
     string constant khaosId = "github-market";
 
     mapping(address => string) private repositories;
@@ -72,6 +73,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(bytes32 => address) private markets;
     mapping(bytes32 => bool) private pendingAuthentication;
     mapping(bytes32 => bool) private authenticationed;
+    mapping(string => bool) private publicSignatures;
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
     event Query(string publicSignature);
@@ -96,17 +98,16 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         string memory,
         address _dest,
-        address account
+        address
     ) public override returns (bool) {
+        if (priorApproved) {
+            require(
+                publicSignatures[_publicSignature],
+                "It has not been approved."
+            );
+        }
         bytes32 key = createKey(_githubRepository);
         require(authenticationed[key] == false, "already authinticated");
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(_githubRepository, "github-market")
-        );
-        bool result = messageHash.toEthSignedMessageHash().recover(
-            bytes(_publicSignature)
-        ) == account;
-        require(result, "elligal signature");
         emit Query(_publicSignature);
         properties[key] = _prop;
         markets[key] = _dest;
@@ -181,6 +182,17 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
     function done() public onlyOwner {
         migratable = false;
+    }
+
+    function setpriorApprovedMode(bool _value) public onlyOwner {
+        priorApproved = _value;
+    }
+
+    function addPublicSignaturee(string memory _publicSignature)
+        public
+        onlyOwner
+    {
+        publicSignatures[_publicSignature] = true;
     }
 
     function setKhaos(address _khaos) external onlyOwner {
