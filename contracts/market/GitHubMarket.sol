@@ -5,29 +5,28 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 interface IMarketBehavior {
-	function authenticate(
-		address _prop,
-		string calldata _args1,
-		string calldata _args2,
-		string calldata _args3,
-		string calldata _args4,
-		string calldata _args5,
-		address market,
-		address account
-	)
-		external
-		returns (
-			// solium-disable-next-line indentation
-			bool
-		);
+    function authenticate(
+        address _prop,
+        string calldata _args1,
+        string calldata _args2,
+        string calldata _args3,
+        string calldata _args4,
+        string calldata _args5,
+        address market,
+        address account
+    )
+        external
+        returns (
+            // solium-disable-next-line indentation
+            bool
+        );
 
-	function schema() external view returns (string memory);
+    function schema() external view returns (string memory);
 
-	function getId(address _metrics) external view returns (string memory);
+    function getId(address _metrics) external view returns (string memory);
 
-	function getMetrics(string calldata _id) external view returns (address);
+    function getMetrics(string calldata _id) external view returns (address);
 }
-
 
 interface IMarket {
     function authenticate(
@@ -74,12 +73,12 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(bytes32 => bool) private pendingAuthentication;
     mapping(bytes32 => bool) private authenticationed;
     event Registered(address _metrics, string _repository);
-    event Authenticated(string _repository, uint _status, string message);
+    event Authenticated(string _repository, uint256 _status, string message);
     event Query(string publicSignature);
 
     struct AuthenticatedData {
         string package;
-        uint status;
+        uint256 status;
         string message;
     }
 
@@ -101,10 +100,12 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     ) public override returns (bool) {
         bytes32 key = createKey(_githubRepository);
         require(authenticationed[key] == false, "already authinticated");
-        bytes32 messageHash = keccak256(abi.encodePacked(_githubRepository, "github-market"));
-        bool result = messageHash
-                .toEthSignedMessageHash()
-                .recover(bytes(_publicSignature)) == account;
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(_githubRepository, "github-market")
+        );
+        bool result = messageHash.toEthSignedMessageHash().recover(
+            bytes(_publicSignature)
+        ) == account;
         require(result, "elligal signature");
         emit Query(_publicSignature);
         properties[key] = _prop;
@@ -113,7 +114,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         return true;
     }
 
-    function khaosCallback(string memory _githubRepository, uint _status, string memory message) external {
+    function khaosCallback(
+        string memory _githubRepository,
+        uint256 _status,
+        string memory message
+    ) external {
         require(msg.sender == khaos, "illegal access");
         require(_status == 0, message);
         bytes32 key = createKey(_githubRepository);
