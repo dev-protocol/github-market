@@ -88,7 +88,7 @@ describe("GitHubMarket", () => {
             )
           )
             .to.emit(marketBehavior, "Query")
-            .withArgs("dummy-signature");
+            .withArgs("user/repository", "dummy-signature");
         });
       });
       describe("not prior approved mode", () => {
@@ -107,7 +107,7 @@ describe("GitHubMarket", () => {
             )
           )
             .to.emit(marketBehavior, "Query")
-            .withArgs("dummy-signature");
+            .withArgs("user/repository", "dummy-signature");
         });
       });
     });
