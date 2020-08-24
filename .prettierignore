@@ -1,4 +1,0 @@
-build
-contracts/modules
-*.js
-!truffle-config.js

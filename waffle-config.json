@@ -1,0 +1,5 @@
+{
+  "sourceDirectory": "./contracts",
+  "outputDirectory": "./build",
+  "nodeModulesDirectory": "./node_modules"
+}
