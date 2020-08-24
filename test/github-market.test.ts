@@ -74,6 +74,7 @@ describe("GitHubMarket", () => {
       describe("prior approved mode", () => {
         it("Query event data is created.", async () => {
           await marketBehavior.setPriorApprovedMode(true);
+          await marketBehavior.setAssociatedMarket(wallet.address);
           await marketBehavior.addPublicSignaturee("dummy-signature");
           await expect(
             marketBehavior.authenticate(
@@ -94,6 +95,7 @@ describe("GitHubMarket", () => {
       describe("not prior approved mode", () => {
         it("Query event data is created.", async () => {
           await marketBehavior.setPriorApprovedMode(false);
+          await marketBehavior.setAssociatedMarket(wallet.address);
           await expect(
             marketBehavior.authenticate(
               property1.address,
@@ -114,6 +116,7 @@ describe("GitHubMarket", () => {
     describe("fail", () => {
       it("Not prior approved when in prior approval mode.", async () => {
         await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(wallet.address);
         await expect(
           marketBehavior.authenticate(
             property1.address,
@@ -127,8 +130,25 @@ describe("GitHubMarket", () => {
           )
         ).to.be.revertedWith("it has not been approved");
       });
+      it("Sender is not Associated-Market.", async () => {
+        await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(khaos.address);
+        await expect(
+          marketBehavior.authenticate(
+            property1.address,
+            "user/repository",
+            "dummy-signature",
+            "",
+            "",
+            "",
+            market.address,
+            ethers.constants.AddressZero
+          )
+        ).to.be.revertedWith("Invalid sender");
+      });
       it("Already approved.", async () => {
         await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(wallet.address);
         await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,
@@ -166,6 +186,7 @@ describe("GitHubMarket", () => {
     describe("success", () => {
       it("The authentication is completed when the callback function is executed from khaos.", async () => {
         await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(wallet.address);
         await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,
@@ -207,6 +228,7 @@ describe("GitHubMarket", () => {
       });
       it("An error occurs during authentication.", async () => {
         await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(wallet.address);
         await marketBehavior.addPublicSignaturee("dummy-signature");
         await marketBehavior.authenticate(
           property1.address,

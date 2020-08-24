@@ -63,6 +63,7 @@ interface IMarket {
 contract GitHubMarket is IMarketBehavior, Ownable {
     using ECDSA for bytes32;
     address private khaos;
+    address private associatedMarket;
     bool public migratable = true;
     bool public priorApproved = true;
 
@@ -93,6 +94,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         address _dest,
         address
     ) external override returns (bool) {
+        require(
+            msg.sender == address(0) || msg.sender == associatedMarket,
+            "Invalid sender"
+        );
+
         if (priorApproved) {
             require(
                 publicSignatures[_publicSignature],
@@ -190,6 +196,10 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
     function setKhaos(address _khaos) external onlyOwner {
         khaos = _khaos;
+    }
+
+    function setAssociatedMarket(address _associatedMarket) external onlyOwner {
+        associatedMarket = _associatedMarket;
     }
 
     function schema() external override view returns (string memory) {
