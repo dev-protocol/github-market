@@ -1,38 +1,28 @@
-// /* eslint-disable @typescript-eslint/no-empty-function */
-// /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-// import {ethers} from "ethers";
-// import Provider = ethers.providers.Provider;
+/* eslint-disable functional/functional-parameters */
+/* eslint-disable functional/no-expression-statement */
 
-// const deployContracts = async (_wallet: ethers.Wallet): Promise<void> => {};
+import {ethers} from "ethers";
+import * as githubmarket from "./../build/GitHubMarket.json";
 
-// const getDeployer = (
-//   deployMnemonic?: string,
-//   deployNetwork = "local",
-//   deployLocalUrl = "http://127.0.0.1:8545"
-// ): ethers.Wallet => {
-//   if (!deployMnemonic) {
-//     throw new Error(
-//       `Error: No DEPLOY_MNEMONIC env var set. Please add it to .<environment>.env file it and try again. See .env.example for more info.\n`
-//     );
-//   }
+const deploy = async (): Promise<void> => {
+  /////////////////////////////////////
+  const network = "";
+  const infuraId = "";
+  const mnemonic = "";
+  /////////////////////////////////////
 
-//   // Connect provider
-//   const provider: Provider =
-//     deployNetwork === "local"
-//       ? new ethers.providers.JsonRpcProvider(deployLocalUrl)
-//       : ethers.getDefaultProvider(deployNetwork);
+  const provider = ethers.getDefaultProvider(network, {
+    infura: infuraId,
+  });
+  const wallet = ethers.Wallet.fromMnemonic(mnemonic).connect(provider);
+  const factory = new ethers.ContractFactory(
+    githubmarket.abi,
+    githubmarket.bytecode,
+    wallet
+  );
+  const contract = await factory.deploy();
+  await contract.deployed();
+  console.log(contract.address);
+};
 
-//   return ethers.Wallet.fromMnemonic(deployMnemonic).connect(provider);
-// };
-
-// const deploy = async (): Promise<void> => {
-//   const mnemonic = process.env.DEPLOY_MNEMONIC;
-//   const network = process.env.DEPLOY_NETWORK;
-//   const deployLocalUrl = process.env.DEPLOY_LOCAL_URL;
-//   const wallet = getDeployer(mnemonic, network, deployLocalUrl);
-
-//   console.log(`Deploying to network [${network ?? "local"}] in 5 seconds!`);
-//   await deployContracts(wallet);
-// };
-
-// void deploy();
+void deploy();

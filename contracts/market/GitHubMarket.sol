@@ -2,7 +2,6 @@
 pragma solidity ^0.6.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ECDSA} from "@openzeppelin/contracts/cryptography/ECDSA.sol";
 
 interface IMarketBehavior {
     function authenticate(
@@ -61,7 +60,6 @@ interface IMarket {
 }
 
 contract GitHubMarket is IMarketBehavior, Ownable {
-    using ECDSA for bytes32;
     address private khaos;
     address private associatedMarket;
     bool public migratable = true;
