@@ -3061,7 +3061,7 @@ eslint-config-xo@0.32.1:
   dependencies:
     confusing-browser-globals "1.0.9"
 
-eslint-plugin-functional@^3.0.2:
+eslint-plugin-functional@3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/eslint-plugin-functional/-/eslint-plugin-functional-3.0.2.tgz#f4d3b18a063c912ba96d3ade6eb8f0a14a989264"
   integrity sha512-miOugVKh+Yvu9h4a3M6yPxrbK4orVghD6Uyd3y62Rv0vz+gPqrI4p7UY7CUa3rA9GKwwgJW02tLPQBYsbytqug==
