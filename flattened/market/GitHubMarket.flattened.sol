@@ -174,7 +174,11 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(string => bool) private publicSignatures;
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
-    event Query(string githubRepository, string publicSignature, address account);
+    event Query(
+        string githubRepository,
+        string publicSignature,
+        address account
+    );
 
     /*
     _githubRepository: ex)
