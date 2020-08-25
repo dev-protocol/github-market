@@ -74,7 +74,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(string => bool) private publicSignatures;
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
-    event Query(string githubRepository, string publicSignature);
+    event Query(string githubRepository, string publicSignature, address account);
 
     /*
     _githubRepository: ex)
@@ -90,7 +90,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         string memory,
         address _dest,
-        address
+        address account
     ) external override returns (bool) {
         require(
             msg.sender == address(0) || msg.sender == associatedMarket,
@@ -105,7 +105,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         }
         bytes32 key = createKey(_githubRepository);
         require(authenticationed[key] == false, "already authinticated");
-        emit Query(_githubRepository, _publicSignature);
+        emit Query(_githubRepository, _publicSignature, account);
         properties[key] = _prop;
         markets[key] = _dest;
         pendingAuthentication[key] = true;

@@ -85,11 +85,11 @@ describe("GitHubMarket", () => {
               "",
               "",
               market.address,
-              ethers.constants.AddressZero
+              wallet.address
             )
           )
             .to.emit(marketBehavior, "Query")
-            .withArgs("user/repository", "dummy-signature");
+            .withArgs("user/repository", "dummy-signature", wallet.address);
         });
       });
       describe("not prior approved mode", () => {
@@ -105,11 +105,11 @@ describe("GitHubMarket", () => {
               "",
               "",
               market.address,
-              ethers.constants.AddressZero
+              wallet.address
             )
           )
             .to.emit(marketBehavior, "Query")
-            .withArgs("user/repository", "dummy-signature");
+            .withArgs("user/repository", "dummy-signature", wallet.address);
         });
       });
     });

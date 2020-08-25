@@ -1,4 +1,3 @@
-
 // File: @openzeppelin/contracts/GSN/Context.sol
 
 // SPDX-License-Identifier: MIT
@@ -16,11 +15,11 @@ pragma solidity ^0.6.0;
  * This contract is only required for intermediate, library-like contracts.
  */
 abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
+    function _msgSender() internal virtual view returns (address payable) {
         return msg.sender;
     }
 
-    function _msgData() internal view virtual returns (bytes memory) {
+    function _msgData() internal virtual view returns (bytes memory) {
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
     }
@@ -45,12 +44,15 @@ pragma solidity ^0.6.0;
 contract Ownable is Context {
     address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor() internal {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -88,7 +90,10 @@ contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
@@ -97,7 +102,6 @@ contract Ownable is Context {
 // File: contracts/market/GitHubMarket.sol
 
 pragma solidity ^0.6.0;
-
 
 interface IMarketBehavior {
     function authenticate(
@@ -170,7 +174,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     mapping(string => bool) private publicSignatures;
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
-    event Query(string githubRepository, string publicSignature);
+    event Query(string githubRepository, string publicSignature, address account);
 
     /*
     _githubRepository: ex)
@@ -186,7 +190,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         string memory,
         address _dest,
-        address
+        address account
     ) external override returns (bool) {
         require(
             msg.sender == address(0) || msg.sender == associatedMarket,
@@ -201,7 +205,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         }
         bytes32 key = createKey(_githubRepository);
         require(authenticationed[key] == false, "already authinticated");
-        emit Query(_githubRepository, _publicSignature);
+        emit Query(_githubRepository, _publicSignature, account);
         properties[key] = _prop;
         markets[key] = _dest;
         pendingAuthentication[key] = true;
