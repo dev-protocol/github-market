@@ -23,6 +23,13 @@ describe("GitHubMarket", () => {
     await market.setLatestMetrics(metrics.address);
   });
 
+  describe("schema", () => {
+    it("Returns this market's schema.", async () => {
+      expect(await marketBehavior.schema()).to.equal(
+        '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]'
+      );
+    });
+  });
   describe("done", () => {
     it("Executing the done function, changes the migratable status.", async () => {
       expect(await marketBehavior.migratable()).to.equal(true);
