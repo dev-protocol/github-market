@@ -38,7 +38,7 @@
     "ethlint": "1.2.5",
     "husky": "4.2.5",
     "mocha": "8.1.1",
-    "prettier": "2.1.0",
+    "prettier": "2.1.1",
     "prettier-plugin-solidity": "1.0.0-alpha.56",
     "rimraf": "3.0.2",
     "ts-node": "9.0.0",
