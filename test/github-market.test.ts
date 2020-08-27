@@ -8,7 +8,13 @@ import * as MockMetrics from "../build/MockMetrics.json";
 use(solidity);
 
 describe("GitHubMarket", () => {
-  const [wallet, property1, property2, khaos] = new MockProvider().getWallets();
+  const [
+    wallet,
+    property1,
+    property2,
+    khaos,
+    operator,
+  ] = new MockProvider().getWallets();
   let marketBehavior: Contract;
   let market: Contract;
   let metrics: Contract;
@@ -28,6 +34,46 @@ describe("GitHubMarket", () => {
       expect(await marketBehavior.schema()).to.equal(
         '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]'
       );
+    });
+  });
+  describe("addPublicSignaturee", () => {
+    describe("success", () => {
+      it("You can register a public key.", async () => {
+        await marketBehavior.setOperator(operator.address);
+        await marketBehavior.addPublicSignaturee("dummy-public-key1");
+        const marketBehaviorOperator = marketBehavior.connect(operator);
+        await marketBehaviorOperator.addPublicSignaturee("dummy-public-key2");
+        expect(true).to.be.equal(true);
+      });
+    });
+    describe("success", () => {
+      it("If you are not configured as an operator, you cannot register a public key.", async () => {
+        const marketBehaviorOperator = marketBehavior.connect(operator);
+        await expect(
+          marketBehaviorOperator.addPublicSignaturee("dummy-public-key")
+        ).to.be.revertedWith("Invalid sender");
+      });
+    });
+  });
+
+  describe("setOperator", () => {
+    describe("fail", () => {
+      it("If anyone other than the owner runs it, it causes an error.", async () => {
+        const marketBehaviorOperator = marketBehavior.connect(operator);
+        await expect(
+          marketBehaviorOperator.setOperator(operator.address)
+        ).to.be.revertedWith("Ownable: caller is not the owner");
+      });
+    });
+  });
+  describe("setKhaos", () => {
+    describe("fail", () => {
+      it("If anyone other than the owner runs it, it causes an error.", async () => {
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await expect(
+          marketBehaviorKhaos.setKhaos(khaos.address)
+        ).to.be.revertedWith("Ownable: caller is not the owner");
+      });
     });
   });
   describe("done", () => {
@@ -97,6 +143,36 @@ describe("GitHubMarket", () => {
           )
             .to.emit(marketBehavior, "Query")
             .withArgs("user/repository", "dummy-signature", wallet.address);
+        });
+        it("You can also authenticate with a public key set by the operator.", async () => {
+          await marketBehavior.setPriorApprovedMode(true);
+          await marketBehavior.setAssociatedMarket(wallet.address);
+          await marketBehavior.setOperator(operator.address);
+          const marketBehaviorOperator = marketBehavior.connect(operator);
+          await marketBehaviorOperator.addPublicSignaturee(
+            "dummy-signature-second",
+            {
+              gasLimit: 1000000,
+            }
+          );
+          await expect(
+            marketBehavior.authenticate(
+              property1.address,
+              "user/repository",
+              "dummy-signature-second",
+              "",
+              "",
+              "",
+              market.address,
+              wallet.address
+            )
+          )
+            .to.emit(marketBehavior, "Query")
+            .withArgs(
+              "user/repository",
+              "dummy-signature-second",
+              wallet.address
+            );
         });
       });
       describe("not prior approved mode", () => {

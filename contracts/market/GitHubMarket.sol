@@ -62,6 +62,7 @@ interface IMarket {
 contract GitHubMarket is IMarketBehavior, Ownable {
     address private khaos;
     address private associatedMarket;
+    address private operator;
     bool public migratable = true;
     bool public priorApproved = true;
 
@@ -191,9 +192,16 @@ contract GitHubMarket is IMarketBehavior, Ownable {
 
     function addPublicSignaturee(string memory _publicSignature)
         external
-        onlyOwner
     {
+        require(
+            msg.sender == owner() || msg.sender == operator,
+            "Invalid sender"
+        );
         publicSignatures[_publicSignature] = true;
+    }
+
+    function setOperator(address _operator) external onlyOwner {
+        operator = _operator;
     }
 
     function setKhaos(address _khaos) external onlyOwner {
