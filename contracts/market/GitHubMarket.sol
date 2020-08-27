@@ -205,6 +205,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     }
 
     function schema() external override view returns (string memory) {
-        return "['GitHub repository', 'GitHub token']";
+        return
+            '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]';
     }
 }
