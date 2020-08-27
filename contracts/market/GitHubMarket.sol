@@ -190,9 +190,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         priorApproved = _value;
     }
 
-    function addPublicSignaturee(string memory _publicSignature)
-        external
-    {
+    function addPublicSignaturee(string memory _publicSignature) external {
         require(
             msg.sender == owner() || msg.sender == operator,
             "Invalid sender"
