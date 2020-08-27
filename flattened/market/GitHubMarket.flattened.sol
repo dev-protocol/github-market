@@ -279,6 +279,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     ) external onlyOwner {
         require(migratable, "now is not migratable");
         bytes32 key = createKey(_repository);
+        authenticationed[key] = true;
         register(key, _repository, _market, _property);
     }
 
