@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import {expect, use} from "chai";
 import {Contract, ethers} from "ethers";
 import {deployContract, MockProvider, solidity} from "ethereum-waffle";
@@ -58,39 +57,121 @@ describe("GitHubMarket", () => {
   });
   describe("pause,unpause", () => {
     describe("success", () => {
-      it("pauseすると認証関数が実行できなくなる", async () => {});
-      it("pauseしても認証に関係のない関数は実行できる", async () => {});
-      it("pauseを解除すると認証関数が実行できる", async () => {});
-      it("pauseを解除した後も、問題なく認証に関係のない関数は実行でき続ける", async () => {});
+      it("Non-authentication-related functions can be executed in the pause state.", async () => {
+        await marketBehavior.pause();
+        await marketBehavior.setPriorApprovedMode(false);
+        await marketBehavior.addPublicSignaturee("dummy-sig");
+        await marketBehavior.setOperator(operator.address);
+        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.setAssociatedMarket(khaos.address);
+        await marketBehavior.schema();
+        await marketBehavior.migrate(
+          "user/repo",
+          market.address,
+          property1.address
+        );
+        await marketBehavior.getId(metrics.address);
+        await marketBehavior.getMetrics("user/repo");
+        await marketBehavior.done();
+      });
+      it("When the pause is released, the authentication function can be executed", async () => {
+        await marketBehavior.pause();
+        await marketBehavior.unpause();
+        await marketBehavior.setPriorApprovedMode(true);
+        await marketBehavior.setAssociatedMarket(wallet.address);
+        await marketBehavior.addPublicSignaturee("dummy-signature");
+        await marketBehavior.authenticate(
+          property1.address,
+          "user/repository",
+          "dummy-signature",
+          "",
+          "",
+          "",
+          market.address,
+          ethers.constants.AddressZero
+        );
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await marketBehavior.setKhaos(khaos.address);
+        await expect(
+          marketBehaviorKhaos.khaosCallback("user/repository", 0, "success")
+        )
+          .to.emit(marketBehavior, "Authenticated")
+          .withArgs("user/repository", 0, "success");
+        expect(await marketBehavior.getId(metrics.address)).to.equal(
+          "user/repository"
+        );
+        expect(await marketBehavior.getMetrics("user/repository")).to.equal(
+          metrics.address
+        );
+      });
+      it("Non-authentication-related functions will continue to execute after pause is released", async () => {
+        await marketBehavior.pause();
+        await marketBehavior.unpause();
+        await marketBehavior.setPriorApprovedMode(false);
+        await marketBehavior.addPublicSignaturee("dummy-sig");
+        await marketBehavior.setOperator(operator.address);
+        await marketBehavior.setKhaos(khaos.address);
+        await marketBehavior.setAssociatedMarket(khaos.address);
+        await marketBehavior.schema();
+        await marketBehavior.migrate(
+          "user/repo",
+          market.address,
+          property1.address
+        );
+        await marketBehavior.getId(metrics.address);
+        await marketBehavior.getMetrics("user/repo");
+        await marketBehavior.done();
+      });
     });
     describe("fail", () => {
-      it("pause中にpauseできない", async () => {
+      it("Can't pause during pause.", async () => {
         await marketBehavior.pause();
         await expect(marketBehavior.pause()).to.be.revertedWith(
           "Pausable: paused"
         );
       });
-      it("pause中に認証関数を実行するとエラーになる", async () => {});
-      it("pause中にコールバック関数を実行するとエラーになる", async () => {});
-      it("pauseしていない時にunpauseできない", async () => {
+      it("Authentication is not possible during pause.", async () => {
+        await marketBehavior.pause();
+        await marketBehavior.setPriorApprovedMode(false);
+        await marketBehavior.setAssociatedMarket(wallet.address);
+        await expect(
+          marketBehavior.authenticate(
+            property1.address,
+            "user/repository",
+            "dummy-signature",
+            "",
+            "",
+            "",
+            market.address,
+            wallet.address
+          )
+        ).to.be.revertedWith("Pausable: paused");
+      });
+      it("The callback function cannot be executed during pause.", async () => {
+        await marketBehavior.pause();
+        await expect(
+          marketBehavior.khaosCallback("user/repository", 0, "success")
+        ).to.be.revertedWith("Pausable: paused");
+      });
+      it("You can't unpause when you're not on pause.", async () => {
         await expect(marketBehavior.unpause()).to.be.revertedWith(
           "Pausable: not paused"
         );
       });
-      it("unpause中にunpauseできない", async () => {
+      it("Can't unpause while unpausing", async () => {
         await marketBehavior.pause();
         await marketBehavior.unpause();
         await expect(marketBehavior.unpause()).to.be.revertedWith(
           "Pausable: not paused"
         );
       });
-      it("deployer以外はpauseできない", async () => {
+      it("Only the deployer can pause.", async () => {
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await expect(marketBehaviorKhaos.pause()).to.be.revertedWith(
           "Ownable: caller is not the owner"
         );
       });
-      it("deployer以外はunpauseできない", async () => {
+      it("Only the deployer can unpause.", async () => {
         await marketBehavior.pause();
         const marketBehaviorKhaos = marketBehavior.connect(khaos);
         await expect(marketBehaviorKhaos.unpause()).to.be.revertedWith(
