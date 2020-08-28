@@ -2,6 +2,7 @@
 pragma solidity ^0.6.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 interface IMarketBehavior {
     function authenticate(
@@ -59,7 +60,7 @@ interface IMarket {
     function toEnable() external;
 }
 
-contract GitHubMarket is IMarketBehavior, Ownable {
+contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
     address private khaos;
     address private associatedMarket;
     address private operator;
@@ -96,7 +97,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         address _dest,
         address account
-    ) external override returns (bool) {
+    ) external override whenNotPaused returns (bool) {
         require(
             msg.sender == address(0) || msg.sender == associatedMarket,
             "Invalid sender"
@@ -121,7 +122,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _githubRepository,
         uint256 _status,
         string memory _message
-    ) external {
+    ) external whenNotPaused {
         require(msg.sender == khaos, "illegal access");
         require(_status == 0, _message);
         bytes32 key = createKey(_githubRepository);
@@ -214,5 +215,13 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function schema() external override view returns (string memory) {
         return
             '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]';
+    }
+
+    function pause() external whenNotPaused onlyOwner {
+        _pause();
+    }
+
+    function unpause() external whenPaused onlyOwner {
+        _unpause();
     }
 }

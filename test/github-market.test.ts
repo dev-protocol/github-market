@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import {expect, use} from "chai";
 import {Contract, ethers} from "ethers";
 import {deployContract, MockProvider, solidity} from "ethereum-waffle";
@@ -46,7 +47,7 @@ describe("GitHubMarket", () => {
         expect(true).to.be.equal(true);
       });
     });
-    describe("success", () => {
+    describe("fail", () => {
       it("If you are not configured as an operator, you cannot register a public key.", async () => {
         const marketBehaviorOperator = marketBehavior.connect(operator);
         await expect(
@@ -55,7 +56,49 @@ describe("GitHubMarket", () => {
       });
     });
   });
-
+  describe("pause,unpause", () => {
+    describe("success", () => {
+      it("pauseすると認証関数が実行できなくなる", async () => {});
+      it("pauseしても認証に関係のない関数は実行できる", async () => {});
+      it("pauseを解除すると認証関数が実行できる", async () => {});
+      it("pauseを解除した後も、問題なく認証に関係のない関数は実行でき続ける", async () => {});
+    });
+    describe("fail", () => {
+      it("pause中にpauseできない", async () => {
+        await marketBehavior.pause();
+        await expect(marketBehavior.pause()).to.be.revertedWith(
+          "Pausable: paused"
+        );
+      });
+      it("pause中に認証関数を実行するとエラーになる", async () => {});
+      it("pause中にコールバック関数を実行するとエラーになる", async () => {});
+      it("pauseしていない時にunpauseできない", async () => {
+        await expect(marketBehavior.unpause()).to.be.revertedWith(
+          "Pausable: not paused"
+        );
+      });
+      it("unpause中にunpauseできない", async () => {
+        await marketBehavior.pause();
+        await marketBehavior.unpause();
+        await expect(marketBehavior.unpause()).to.be.revertedWith(
+          "Pausable: not paused"
+        );
+      });
+      it("deployer以外はpauseできない", async () => {
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await expect(marketBehaviorKhaos.pause()).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
+      });
+      it("deployer以外はunpauseできない", async () => {
+        await marketBehavior.pause();
+        const marketBehaviorKhaos = marketBehavior.connect(khaos);
+        await expect(marketBehaviorKhaos.unpause()).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
+      });
+    });
+  });
   describe("setOperator", () => {
     describe("fail", () => {
       it("If anyone other than the owner runs it, it causes an error.", async () => {

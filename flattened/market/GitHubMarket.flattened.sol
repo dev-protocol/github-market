@@ -1,3 +1,4 @@
+
 // File: @openzeppelin/contracts/GSN/Context.sol
 
 // SPDX-License-Identifier: MIT
@@ -15,17 +16,18 @@ pragma solidity ^0.6.0;
  * This contract is only required for intermediate, library-like contracts.
  */
 abstract contract Context {
-    function _msgSender() internal virtual view returns (address payable) {
+    function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
     }
 
-    function _msgData() internal virtual view returns (bytes memory) {
+    function _msgData() internal view virtual returns (bytes memory) {
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
     }
 }
 
 // File: @openzeppelin/contracts/access/Ownable.sol
+
 
 pragma solidity ^0.6.0;
 
@@ -44,15 +46,12 @@ pragma solidity ^0.6.0;
 contract Ownable is Context {
     address private _owner;
 
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor() internal {
+    constructor () internal {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -90,18 +89,108 @@ contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(
-            newOwner != address(0),
-            "Ownable: new owner is the zero address"
-        );
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
+    }
+}
+
+// File: @openzeppelin/contracts/utils/Pausable.sol
+
+
+pragma solidity ^0.6.0;
+
+
+/**
+ * @dev Contract module which allows children to implement an emergency stop
+ * mechanism that can be triggered by an authorized account.
+ *
+ * This module is used through inheritance. It will make available the
+ * modifiers `whenNotPaused` and `whenPaused`, which can be applied to
+ * the functions of your contract. Note that they will not be pausable by
+ * simply including this module, only once the modifiers are put in place.
+ */
+contract Pausable is Context {
+    /**
+     * @dev Emitted when the pause is triggered by `account`.
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by `account`.
+     */
+    event Unpaused(address account);
+
+    bool private _paused;
+
+    /**
+     * @dev Initializes the contract in unpaused state.
+     */
+    constructor () internal {
+        _paused = false;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is not paused.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    modifier whenNotPaused() {
+        require(!_paused, "Pausable: paused");
+        _;
+    }
+
+    /**
+     * @dev Modifier to make a function callable only when the contract is paused.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    modifier whenPaused() {
+        require(_paused, "Pausable: not paused");
+        _;
+    }
+
+    /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function _pause() internal virtual whenNotPaused {
+        _paused = true;
+        emit Paused(_msgSender());
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function _unpause() internal virtual whenPaused {
+        _paused = false;
+        emit Unpaused(_msgSender());
     }
 }
 
 // File: contracts/market/GitHubMarket.sol
 
 pragma solidity ^0.6.0;
+
+
 
 interface IMarketBehavior {
     function authenticate(
@@ -159,7 +248,7 @@ interface IMarket {
     function toEnable() external;
 }
 
-contract GitHubMarket is IMarketBehavior, Ownable {
+contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
     address private khaos;
     address private associatedMarket;
     address private operator;
@@ -196,7 +285,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory,
         address _dest,
         address account
-    ) external override returns (bool) {
+    ) external override whenNotPaused returns (bool) {
         require(
             msg.sender == address(0) || msg.sender == associatedMarket,
             "Invalid sender"
@@ -221,7 +310,7 @@ contract GitHubMarket is IMarketBehavior, Ownable {
         string memory _githubRepository,
         uint256 _status,
         string memory _message
-    ) external {
+    ) external whenNotPaused {
         require(msg.sender == khaos, "illegal access");
         require(_status == 0, _message);
         bytes32 key = createKey(_githubRepository);
@@ -314,5 +403,13 @@ contract GitHubMarket is IMarketBehavior, Ownable {
     function schema() external override view returns (string memory) {
         return
             '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]';
+    }
+
+    function pause() external whenNotPaused onlyOwner {
+        _pause();
+    }
+
+    function unpause() external whenPaused onlyOwner {
+        _unpause();
     }
 }
