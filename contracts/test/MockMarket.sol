@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-pragma solidity ^0.6.0;
+pragma solidity 0.6.12;
 import {IMarket} from "contracts/market/GitHubMarket.sol";
 
 contract MockMarket is IMarket {
