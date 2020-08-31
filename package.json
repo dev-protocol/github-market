@@ -16,7 +16,7 @@
     "lint:format": "prettier --write '**/*.{sol,js,json,md,yml}'",
     "build": "tsc -p tsconfig.build.json",
     "prebuild": "yarn generate",
-    "clean": "rimraf [build, scripts/**/*.js] build"
+    "clean": "rimraf scripts/**/*.js build"
   },
   "author": "",
   "license": "MPL-2.0",
