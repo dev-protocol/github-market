@@ -96,6 +96,11 @@ local.settings.json
 # use yarn as a package manager
 package-lock.json
 
+# built sources
 build/
 
+# all javascript
 *.js
+
+# encrypted env file
+.env.gpg
