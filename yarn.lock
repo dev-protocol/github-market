@@ -491,7 +491,7 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@types/bent@^7.3.0":
+"@types/bent@7.3.0":
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/@types/bent/-/bent-7.3.0.tgz#c3a99e790eceba77e0b87423eef35f0b034678a5"
   integrity sha512-EitzswEqzdUc1Yqnyuqd90aLQCgHeTCwd7GMoL56saxpNt5Mi6v8Sr4BrlKd0NYRwdwcayQqb2QuKjGYM7GegQ==
@@ -1694,7 +1694,7 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bent@^7.3.10:
+bent@7.3.10:
   version "7.3.10"
   resolved "https://registry.yarnpkg.com/bent/-/bent-7.3.10.tgz#3c58a218b51c1efc9e0381a4f230b2f437184cb9"
   integrity sha512-X2P2nGRWejGn6IjJfL4usOuAVMng1DdyuRhXLGOcUvEblBcLZenrSjlkgS8ob1s3tbq3mo1FDxKhCRNvcf0y0Q==
