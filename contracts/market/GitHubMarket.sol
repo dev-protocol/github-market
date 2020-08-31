@@ -65,7 +65,7 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
     address private associatedMarket;
     address private operator;
     bool public migratable = true;
-    bool public priorApproved = true;
+    bool public priorApproval = true;
 
     mapping(address => string) private repositories;
     mapping(bytes32 => address) private metrics;
@@ -103,7 +103,7 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
             "Invalid sender"
         );
 
-        if (priorApproved) {
+        if (priorApproval) {
             require(
                 publicSignatures[_publicSignature],
                 "it has not been approved"
@@ -188,8 +188,8 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         migratable = false;
     }
 
-    function setPriorApprovedMode(bool _value) external onlyOwner {
-        priorApproved = _value;
+    function setPriorApprovalMode(bool _value) external onlyOwner {
+        priorApproval = _value;
     }
 
     function addPublicSignaturee(string memory _publicSignature) external {
