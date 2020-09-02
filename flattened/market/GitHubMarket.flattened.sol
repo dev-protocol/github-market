@@ -252,7 +252,6 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
     address private khaos;
     address private associatedMarket;
     address private operator;
-    bool public migratable = true;
     bool public priorApproval = true;
 
     mapping(address => string) private repositories;
@@ -260,7 +259,6 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
     mapping(bytes32 => address) private properties;
     mapping(bytes32 => address) private markets;
     mapping(bytes32 => bool) private pendingAuthentication;
-    mapping(bytes32 => bool) private authenticationed;
     mapping(string => bool) private publicSignatures;
     event Registered(address _metrics, string _repository);
     event Authenticated(string _repository, uint256 _status, string message);
@@ -298,7 +296,6 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
             );
         }
         bytes32 key = createKey(_githubRepository);
-        require(authenticationed[key] == false, "already authinticated");
         emit Query(_githubRepository, _publicSignature, account);
         properties[key] = _prop;
         markets[key] = _dest;
@@ -316,7 +313,6 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         bytes32 key = createKey(_githubRepository);
         require(pendingAuthentication[key], "not while pending");
         emit Authenticated(_githubRepository, _status, _message);
-        authenticationed[key] = true;
         register(key, _githubRepository, markets[key], properties[key]);
     }
 
@@ -359,21 +355,6 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         returns (address)
     {
         return metrics[createKey(_repository)];
-    }
-
-    function migrate(
-        string memory _repository,
-        address _market,
-        address _property
-    ) external onlyOwner {
-        require(migratable, "now is not migratable");
-        bytes32 key = createKey(_repository);
-        authenticationed[key] = true;
-        register(key, _repository, _market, _property);
-    }
-
-    function done() external onlyOwner {
-        migratable = false;
     }
 
     function setPriorApprovalMode(bool _value) external onlyOwner {
