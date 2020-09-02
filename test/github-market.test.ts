@@ -65,14 +65,8 @@ describe("GitHubMarket", () => {
         await marketBehavior.setKhaos(khaos.address);
         await marketBehavior.setAssociatedMarket(khaos.address);
         await marketBehavior.schema();
-        await marketBehavior.migrate(
-          "user/repo",
-          market.address,
-          property1.address
-        );
         await marketBehavior.getId(metrics.address);
         await marketBehavior.getMetrics("user/repo");
-        await marketBehavior.done();
       });
       it("When the pause is released, the authentication function can be executed", async () => {
         await marketBehavior.pause();
@@ -113,14 +107,8 @@ describe("GitHubMarket", () => {
         await marketBehavior.setKhaos(khaos.address);
         await marketBehavior.setAssociatedMarket(khaos.address);
         await marketBehavior.schema();
-        await marketBehavior.migrate(
-          "user/repo",
-          market.address,
-          property1.address
-        );
         await marketBehavior.getId(metrics.address);
         await marketBehavior.getMetrics("user/repo");
-        await marketBehavior.done();
       });
     });
     describe("fail", () => {
@@ -200,52 +188,6 @@ describe("GitHubMarket", () => {
       });
     });
   });
-  describe("done", () => {
-    it("Executing the done function, changes the migratable status.", async () => {
-      expect(await marketBehavior.migratable()).to.equal(true);
-      await marketBehavior.done();
-      expect(await marketBehavior.migratable()).to.equal(false);
-    });
-  });
-  describe("migrate", () => {
-    describe("success", () => {
-      it("The migrated data will be registered.", async () => {
-        await expect(
-          marketBehavior.migrate(
-            "user/repository",
-            market.address,
-            property1.address
-          )
-        )
-          .to.emit(marketBehavior, "Registered")
-          .withArgs(metrics.address, "user/repository");
-        expect(await marketBehavior.getId(metrics.address)).to.equal(
-          "user/repository"
-        );
-        expect(await marketBehavior.getMetrics("user/repository")).to.equal(
-          metrics.address
-        );
-      });
-    });
-    describe("fail", () => {
-      it("If you run the done function, you won't be able to migrate.", async () => {
-        await marketBehavior.migrate(
-          "user/repository",
-          market.address,
-          property1.address
-        );
-        await marketBehavior.done();
-        await expect(
-          marketBehavior.migrate(
-            "user/repository2",
-            market.address,
-            property2.address
-          )
-        ).to.be.revertedWith("now is not migratable");
-      });
-    });
-  });
-
   describe("authenticate", () => {
     describe("success", () => {
       describe("prior approved mode", () => {
@@ -352,40 +294,6 @@ describe("GitHubMarket", () => {
             ethers.constants.AddressZero
           )
         ).to.be.revertedWith("Invalid sender");
-      });
-      it("Already approved.", async () => {
-        await marketBehavior.setPriorApprovalMode(true);
-        await marketBehavior.setAssociatedMarket(wallet.address);
-        await marketBehavior.addPublicSignaturee("dummy-signature");
-        await marketBehavior.authenticate(
-          property1.address,
-          "user/repository",
-          "dummy-signature",
-          "",
-          "",
-          "",
-          market.address,
-          ethers.constants.AddressZero
-        );
-        const marketBehaviorKhaos = marketBehavior.connect(khaos);
-        await marketBehavior.setKhaos(khaos.address);
-        await marketBehaviorKhaos.khaosCallback(
-          "user/repository",
-          0,
-          "success"
-        );
-        await expect(
-          marketBehavior.authenticate(
-            property1.address,
-            "user/repository",
-            "dummy-signature",
-            "",
-            "",
-            "",
-            market.address,
-            ethers.constants.AddressZero
-          )
-        ).to.be.revertedWith("already authinticated");
       });
     });
   });
