@@ -34,7 +34,7 @@
     "eslint": "7.30.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-config-xo": "0.37.0",
-    "eslint-config-xo-typescript": "0.42.0",
+    "eslint-config-xo-typescript": "0.43.0",
     "eslint-plugin-prettier": "3.4.0",
     "ethereum-waffle": "3.4.0",
     "ethlint": "1.2.5",
