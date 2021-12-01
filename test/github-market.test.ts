@@ -1,6 +1,6 @@
-import {expect, use} from "chai";
-import {Contract, ethers} from "ethers";
-import {deployContract, MockProvider, solidity} from "ethereum-waffle";
+import { expect, use } from "chai";
+import { Contract, ethers } from "ethers";
+import { deployContract, MockProvider, solidity } from "ethereum-waffle";
 import * as GitHubMarket from "../build/GitHubMarket.json";
 import * as MockMarket from "../build/MockMarket.json";
 import * as MockMetrics from "../build/MockMetrics.json";
@@ -8,13 +8,7 @@ import * as MockMetrics from "../build/MockMetrics.json";
 use(solidity);
 
 describe("GitHubMarket", () => {
-  const [
-    wallet,
-    property1,
-    property2,
-    khaos,
-    operator,
-  ] = new MockProvider().getWallets();
+  const [wallet, property1, khaos, operator] = new MockProvider().getWallets();
   let marketBehavior: Contract;
   let market: Contract;
   let metrics: Contract;

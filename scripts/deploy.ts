@@ -3,13 +3,13 @@
 /* eslint-disable functional/functional-parameters */
 /* eslint-disable functional/no-expression-statement */
 
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 import * as githubmarket from "./../build/GitHubMarket.json";
-import {ethgas} from "./lib/ethgas";
+import { ethgas } from "./lib/ethgas";
 require("dotenv").config();
 
 const deploy = async (): Promise<void> => {
-  const {NETWORK, INFURA_ID, MNEMONIC, ETHGASSTATION_TOKEN} = process.env;
+  const { NETWORK, INFURA_ID, MNEMONIC, ETHGASSTATION_TOKEN } = process.env;
   console.log(`network:${NETWORK}`);
   console.log(`infura id:${INFURA_ID}`);
   console.log(`mnemonic:${MNEMONIC}`);

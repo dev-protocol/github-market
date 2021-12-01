@@ -1,5 +1,5 @@
 import bent from "bent";
-import {utils} from "ethers";
+import { utils } from "ethers";
 
 type EGSResponse = {
   readonly fast: number;
