@@ -134,11 +134,11 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         address _market,
         address _property
     ) private {
-        address metrics =
+        address _metrics =
             IMarket(_market).authenticatedCallback(_property, _key);
-        repositories[metrics] = _repository;
-        metrics[_key] = metrics;
-        emit Registered(metrics, _repository);
+        repositories[_metrics] = _repository;
+        metrics[_key] = _metrics;
+        emit Registered(_metrics, _repository);
     }
 
     function createKey(string memory _repository)
