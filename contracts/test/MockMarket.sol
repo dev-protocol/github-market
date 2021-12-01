@@ -31,19 +31,19 @@ contract MockMarket is IMarket {
     // solium-disable-next-line no-empty-blocks
     function deauthenticate(address) external override {}
 
-    function schema() external override view returns (string memory) {
+    function schema() external view override returns (string memory) {
         return "";
     }
 
-    function behavior() external override view returns (address) {
+    function behavior() external view override returns (address) {
         return address(0);
     }
 
-    function enabled() external override view returns (bool) {
+    function enabled() external view override returns (bool) {
         return true;
     }
 
-    function votingEndBlockNumber() external override view returns (uint256) {
+    function votingEndBlockNumber() external view override returns (uint256) {
         return 0;
     }
 

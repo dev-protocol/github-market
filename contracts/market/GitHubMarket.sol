@@ -134,10 +134,8 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         address _market,
         address _property
     ) private {
-        address _metrics = IMarket(_market).authenticatedCallback(
-            _property,
-            _key
-        );
+        address _metrics =
+            IMarket(_market).authenticatedCallback(_property, _key);
         repositories[_metrics] = _repository;
         metrics[_key] = _metrics;
         emit Registered(_metrics, _repository);
@@ -153,8 +151,8 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
 
     function getId(address _metrics)
         external
-        override
         view
+        override
         returns (string memory)
     {
         return repositories[_metrics];
@@ -162,8 +160,8 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
 
     function getMetrics(string memory _repository)
         external
-        override
         view
+        override
         returns (address)
     {
         return metrics[createKey(_repository)];
@@ -193,7 +191,7 @@ contract GitHubMarket is IMarketBehavior, Ownable, Pausable {
         associatedMarket = _associatedMarket;
     }
 
-    function schema() external override view returns (string memory) {
+    function schema() external view override returns (string memory) {
         return
             '["GitHub Repository (e.g, your/awesome-repos)", "Khaos Public Signature"]';
     }

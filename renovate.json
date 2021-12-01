@@ -1,10 +1,10 @@
 {
   "extends": ["config:base"],
   "automerge": true,
-	"packageRules": [
-		{
-			"packageNames": ["@openzeppelin/contracts"],
-			"allowedVersions": "3.4.2"
-		}
-	]
+  "packageRules": [
+    {
+      "packageNames": ["@openzeppelin/contracts"],
+      "allowedVersions": "3.4.2"
+    }
+  ]
 }
