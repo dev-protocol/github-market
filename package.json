@@ -54,6 +54,6 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "3.4.2",
-    "eslint-plugin-functional": "3.7.2"
+    "eslint-plugin-functional": "5.0.8"
   }
 }
