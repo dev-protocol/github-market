@@ -21,7 +21,7 @@
   "author": "",
   "license": "MPL-2.0",
   "devDependencies": {
-    "@types/bent": "7.3.3",
+    "@types/bent": "7.3.8",
     "@types/chai": "4.3.5",
     "@types/dotenv": "8.2.0",
     "@types/mocha": "9.1.1",
