@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/bent": "7.3.8",
     "@types/chai": "4.3.20",
-    "@types/dotenv": "8.2.0",
+    "@types/dotenv": "8.2.3",
     "@types/mocha": "9.1.1",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",
