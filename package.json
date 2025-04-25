@@ -45,7 +45,7 @@
     "rimraf": "3.0.2",
     "ts-node": "10.9.2",
     "typescript": "5.0.4",
-    "web3": "1.7.4"
+    "web3": "1.10.4"
   },
   "husky": {
     "hooks": {
